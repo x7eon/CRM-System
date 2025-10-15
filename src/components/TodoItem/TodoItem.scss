@@ -1,0 +1,180 @@
+.todoItemContainer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #fff;
+  border-radius: 10px;
+  padding: 15px 15px 0 15px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.todoItemTextCheckGroup {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.todoItemCheckbox {
+  margin: 0;
+  appearance: none;
+  inline-size: 18px;
+  block-size: 18px;
+  border-radius: 10px;
+  accent-color: #5393ff;
+  background-color: transparent;
+  border: 2px solid rgba(14, 14, 14, 0.16);
+  cursor: pointer;
+  outline: none;
+
+  &:hover {
+    &::after {
+      content: 'Поменять статус';
+      white-space: nowrap;
+      position: relative;
+      padding: 5px;
+      top: -16px;
+      left: -79px;
+      font-size: 10px;
+      background-color: #fff;
+      border-radius: 5px;
+    }
+  }
+}
+
+.todoItemCheckbox:checked {
+  background-color: #5393ff;
+  border: none;
+
+  &::before {
+    content: '';
+    display: block;
+    inline-size: 18px;
+    block-size: 18px;
+    background-size: 50%;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-image: url("/src/assets/icons/checkmark.svg");
+  }
+
+  &:hover {
+    &::after {
+      content: 'Поменять статус';
+      white-space: nowrap;
+      position: relative;
+      padding: 5px;
+      top: -32px;
+      left: -79px;
+      font-size: 10px;
+      background-color: #fff;
+      border-radius: 5px;
+    }
+  }
+}
+
+.todoItemInputTitle {
+  border: none;
+  margin: 0;
+  padding-bottom: 1px;
+  font-size: 18px;
+  text-transform: lowercase;
+  font-weight: 400;
+  font-style: normal;
+
+  &:disabled {
+    border: none;
+    background-color: #fff;
+  }
+
+  &:focus-visible,
+  &:focus {
+    outline: none;
+    border: 1px solid #000;
+    border-radius: 4px;
+    padding: 3px;
+  }
+}
+
+.todoItemButtons {
+  display: flex;
+  gap: 15px;
+
+  &:focus {
+    outline: none;
+  }
+}
+
+.todoButton {
+  inline-size: 40px;
+  block-size: 40px;
+  cursor: pointer;
+  border-radius: 5px;
+  font-family: inherit;
+  border: none;
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: 12px;
+
+  &:hover {
+    &::after {
+      position: relative;
+      padding: 5px;
+      top: -27px;
+      left: 29px;
+      font-size: 10px;
+      background-color: #fff;
+      border-radius: 5px;
+    }
+  }
+}
+
+.todoItemEditButton {
+  background-color: #5393ff;
+  background-image: url("/src/assets/icons/edit-icon.svg");
+
+  &:hover {
+    &::after {
+      content: 'Редактировать';
+    }
+  }
+}
+
+.todoItemSaveButton {
+  background-color: #74dc57;
+  background-image: url("/src/assets/icons/checkmark.svg");
+
+  &:disabled {
+    background-color: rgba(116, 220, 87, 0.41);
+    cursor: not-allowed;
+  }
+
+  &:hover {
+    &::after {
+      content: 'Сохранить';
+    }
+  }
+}
+
+.todoItemDeleteButton {
+  background-color: #fe675f;
+  background-image: url("/src/assets/icons/delete-icon.svg");
+  background-size: 15px;
+
+  &:hover {
+    &::after {
+      content: 'Удалить';
+    }
+  }
+}
+
+.todoItemCancelButton {
+  background-color: rgb(145 145 145 / 70%);
+  background-image: url("/src/assets/icons/cancel.svg");
+  background-size: 15px;
+
+  &:hover {
+    &::after {
+      content: 'Отменить';
+    }
+  }
+}

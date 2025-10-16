@@ -1,10 +1,5 @@
 const BASE_URL = "https://easydev.club/api/v1";
 
-// interface TodoRequest {
-//   title?: string;
-//   isDone?: boolean; // изменение статуса задачи происходит через этот флаг
-// }
-
 async function getTodosApi(status: string) {
   try {
     const response = await fetch(`${BASE_URL}/todos?filter=${status}`, {

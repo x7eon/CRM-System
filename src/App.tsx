@@ -7,7 +7,6 @@ import {
   deleteTodoApi,
   getTodosApi,
   editTodoApi,
-  // getTaskById,
 } from "./api/api.ts";
 import { useEffect, useState } from "react";
 import { type ITodoItem } from "./components/TodoItem/TodoItem.tsx";
@@ -49,7 +48,6 @@ function App(): ReactElement {
   async function getTodos(status: string) {
     try {
       const response = await getTodosApi(status);
-      console.log(response);
       setTodos(response.data);
     } catch (e) {
       console.log(e);
@@ -61,7 +59,6 @@ function App(): ReactElement {
       const response = await addTodoApi(title);
       setTodos([...todos, response]);
       await getCounters();
-      console.log("Добавление todo");
     } catch (e) {
       console.log(e);
     }
@@ -73,7 +70,6 @@ function App(): ReactElement {
       const filteredTodos = todos.filter((item) => item.id !== id);
       setTodos([...filteredTodos]);
       await getCounters();
-      console.log("Удаление todo");
     } catch (e) {
       console.log(e);
     }
@@ -81,10 +77,8 @@ function App(): ReactElement {
 
   async function editTodo(id: number, title?: string, isDone?: boolean) {
     try {
-      const result = await editTodoApi(id, title, isDone);
-      console.log(result);
+      await editTodoApi(id, title, isDone);
       await getCounters();
-      console.log("Изменение todo");
     } catch (e) {
       console.log(e);
     }
@@ -94,62 +88,53 @@ function App(): ReactElement {
     setTodos([...todos.filter((item) => item.id !== id)]);
   }
 
-  function validateTitle(
-    title: string,
-    isValid: React.RefObject<boolean>,
-    errorTextRef: React.RefObject<HTMLSpanElement | null>,
-    setValidateErrorText: (value: string) => void,
-  ) {
-    hideValidateError(isValid, errorTextRef);
+  function validateTitle(title: string) {
     const titleLength = title.length;
     if (title === "") {
-      isValid.current = false;
-      setValidateErrorText("Это поле не может быть пустым");
-      showValidateError(isValid, errorTextRef);
+      return { isValid: false, errorText: "Это поле не может быть пустым" };
     } else if (titleLength < 2) {
-      setValidateErrorText("Минимальная длина текста 2 символа");
-      isValid.current = false;
-      showValidateError(isValid, errorTextRef);
+      return {
+        isValid: false,
+        errorText: "Минимальная длина текста 2 символа",
+      };
     } else if (titleLength > 64) {
-      setValidateErrorText("Максимальная длина текста 64 символа");
-      isValid.current = false;
-      showValidateError(isValid, errorTextRef);
+      return {
+        isValid: false,
+        errorText: "Максимальная длина текста 64 символа",
+      };
     } else {
-      isValid.current = true;
-      hideValidateError(isValid, errorTextRef);
+      return { isValid: true, errorText: "" };
     }
   }
 
-  function showValidateError(
-    isValid: React.RefObject<boolean>,
-    errorTextRef: React.RefObject<HTMLSpanElement | null>,
+  function toggleShowValidateError(
+    isValid: boolean,
+    errorElement: React.RefObject<HTMLSpanElement | null>,
   ) {
-    if (!isValid.current) {
-      errorTextRef.current!.classList.add("errorText_visible");
-    }
-  }
-
-  function hideValidateError(
-    isValid: React.RefObject<boolean>,
-    errorTextRef: React.RefObject<HTMLSpanElement | null>,
-  ) {
-    if (isValid.current) {
-      errorTextRef.current!.classList.remove("errorText_visible");
+    if (!isValid) {
+      errorElement.current!.classList.add("errorText_visible");
+    } else {
+      errorElement.current!.classList.remove("errorText_visible");
     }
   }
 
   return (
     <>
-      <AddTodo addTodo={addTodo} validateTitle={validateTitle} />
+      <AddTodo
+        addTodo={addTodo}
+        validateTitle={validateTitle}
+        toggleShowValidateError={toggleShowValidateError}
+      />
       <Lists
         todos={todos}
         counters={counters}
         getTodos={getTodos}
         getCounters={getCounters}
-        deleteItem={deleteTodo}
-        editItem={editTodo}
-        removeItemFromList={removeItemFromList}
+        deleteTodo={deleteTodo}
+        editTodo={editTodo}
+        removeTodoFromList={removeItemFromList}
         validateTitle={validateTitle}
+        toggleShowValidateError={toggleShowValidateError}
       />
     </>
   );

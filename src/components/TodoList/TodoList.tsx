@@ -6,27 +6,27 @@ import { type ReactElement } from "react";
 interface ITodoList {
   todos: ITodoItem[];
   getTodos: (status: string) => void;
-  deleteItem: (id: number) => void;
-  editItem: (id: number, title?: string, isDone?: boolean) => void;
+  deleteTodo: (id: number) => void;
+  editTodo: (id: number, title?: string, isDone?: boolean) => void;
   activeTab: string;
-  removeItemFromList: (id: number) => void;
-  validateTitle: (
-    title: string,
-    isValid: React.RefObject<boolean>,
-    errorTextRef: React.RefObject<HTMLSpanElement | null>,
-    setValidateErrorText: (value: string) => void,
+  removeTodoFromList: (id: number) => void;
+  validateTitle: (title: string) => { isValid: boolean; errorText: string };
+  toggleShowValidateError: (
+    isValid: boolean,
+    errorElement: React.RefObject<HTMLSpanElement | null>,
   ) => void;
 }
 
 function TodoList(props: ITodoList): ReactElement {
   const {
     todos,
-    deleteItem,
-    editItem,
+    deleteTodo,
+    editTodo,
     activeTab,
-    removeItemFromList,
+    removeTodoFromList,
     validateTitle,
     getTodos,
+    toggleShowValidateError,
   } = props;
 
   return (
@@ -35,12 +35,13 @@ function TodoList(props: ITodoList): ReactElement {
         <li key={item.id}>
           <TodoItem
             todo={item}
-            deleteItem={deleteItem}
-            editItem={editItem}
-            activeTab={activeTab}
-            removeItemFromList={removeItemFromList}
-            validateTitle={validateTitle}
             getTodos={getTodos}
+            deleteTodo={deleteTodo}
+            editTodo={editTodo}
+            activeTab={activeTab}
+            removeTodoFromList={removeTodoFromList}
+            validateTitle={validateTitle}
+            toggleShowValidateError={toggleShowValidateError}
           />
         </li>
       ))}

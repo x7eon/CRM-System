@@ -6,7 +6,7 @@ import {
   useState,
 } from "react";
 import { useRef } from "react";
-import ErrorValidate from "../ErrorValidate/ErrorValidate.tsx";
+import ErrorValidateText from "../ErrorValidateText/ErrorValidateText.tsx";
 
 export interface ITodoItem {
   id: number;
@@ -18,27 +18,27 @@ export interface ITodoItem {
 export interface ITodoItemProps {
   todo: ITodoItem;
   getTodos: (status: string) => void;
-  deleteItem: (id: number) => void;
-  editItem: (id: number, title?: string, isDone?: boolean) => void;
+  deleteTodo: (id: number) => void;
+  editTodo: (id: number, title?: string, isDone?: boolean) => void;
   activeTab: string;
-  removeItemFromList: (id: number) => void;
-  validateTitle: (
-    title: string,
-    isValid: React.RefObject<boolean>,
-    errorTextRef: React.RefObject<HTMLSpanElement | null>,
-    setValidateErrorText: (value: string) => void,
+  removeTodoFromList: (id: number) => void;
+  validateTitle: (title: string) => { isValid: boolean; errorText: string };
+  toggleShowValidateError: (
+    isValid: boolean,
+    errorElement: React.RefObject<HTMLSpanElement | null>,
   ) => void;
 }
 
 function TodoItem(props: ITodoItemProps): ReactElement {
   const {
     todo,
-    deleteItem,
-    editItem,
+    deleteTodo,
+    editTodo,
     activeTab,
-    removeItemFromList,
+    removeTodoFromList,
     validateTitle,
     getTodos,
+    toggleShowValidateError,
   } = props;
 
   const id = todo.id;
@@ -80,14 +80,13 @@ function TodoItem(props: ITodoItemProps): ReactElement {
   async function saveButtonHandler() {
     try {
       if (!isDisabledInput) {
-        validateTitle(
-          inputTextRef!.current!.value,
-          isValid,
-          errorTextRef,
-          setValidateErrorText,
-        );
+        const validateResult = validateTitle(inputTextRef!.current!.value);
+        setValidateErrorText(validateResult.errorText);
+        isValid.current = validateResult.isValid;
+        toggleShowValidateError(isValid!.current, errorTextRef);
+
         if (isValid.current) {
-          await editItem(id, inputText);
+          await editTodo(id, inputText);
           if (activeTab === "inWork") {
             await getTodos("inWork");
           } else if (activeTab === "completed") {
@@ -106,7 +105,7 @@ function TodoItem(props: ITodoItemProps): ReactElement {
   }
 
   function deleteButtonHandler() {
-    deleteItem(id);
+    deleteTodo(id);
   }
 
   function cancelButtonHandler() {
@@ -120,9 +119,9 @@ function TodoItem(props: ITodoItemProps): ReactElement {
   async function inputCheckboxHandler(e: React.ChangeEvent<HTMLInputElement>) {
     try {
       setCheckBoxIsDone(e.target.checked);
-      editItem(id, inputText, e.target.checked);
+      editTodo(id, inputText, e.target.checked);
       if (activeTab !== "all") {
-        removeItemFromList(id);
+        removeTodoFromList(id);
       }
     } catch (e) {
       console.log(e);
@@ -173,11 +172,11 @@ function TodoItem(props: ITodoItemProps): ReactElement {
           ></button>
         )}
       </div>
-      <ErrorValidate
-        validateErrorText={validateErrorText}
+      <ErrorValidateText
+        errorValidateText={validateErrorText}
         errorTextRef={errorTextRef}
-        marginLeftValue={32}
-      ></ErrorValidate>
+        styles={{ marginLeft: 32 }}
+      ></ErrorValidateText>
     </div>
   );
 }

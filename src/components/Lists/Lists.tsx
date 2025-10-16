@@ -6,22 +6,21 @@ import {
   useState,
 } from "react";
 import type { ITodoItem } from "../TodoItem/TodoItem.tsx";
-import TodoList from "../TodoList/TodoList.tsx";
 import type { ICounters } from "../../App.tsx";
+import TodoList from "../TodoList/TodoList.tsx";
 
 interface ListProps {
   todos: ITodoItem[];
   getTodos: (status: string) => void;
-  deleteItem: (id: number) => void;
-  editItem: (id: number, title?: string, isDone?: boolean) => void;
+  deleteTodo: (id: number) => void;
+  editTodo: (id: number, title?: string, isDone?: boolean) => void;
   counters: ICounters;
   getCounters: () => void;
-  removeItemFromList: (id: number) => void;
-  validateTitle: (
-    title: string,
-    isValid: React.RefObject<boolean>,
-    errorTextRef: React.RefObject<HTMLSpanElement | null>,
-    setValidateErrorText: (value: string) => void,
+  removeTodoFromList: (id: number) => void;
+  validateTitle: (title: string) => { isValid: boolean; errorText: string };
+  toggleShowValidateError: (
+    isValid: boolean,
+    errorElement: React.RefObject<HTMLSpanElement | null>,
   ) => void;
 }
 
@@ -30,18 +29,19 @@ function Lists(props: ListProps): ReactElement {
     todos,
     getTodos,
     getCounters,
-    deleteItem,
-    editItem,
+    deleteTodo,
+    editTodo,
     counters,
-    removeItemFromList,
+    removeTodoFromList,
     validateTitle,
+    toggleShowValidateError,
   } = props;
 
-  const tabAll = useRef<HTMLLIElement>(null);
-  const tabInWork = useRef<HTMLLIElement>(null);
-  const tabCompleted = useRef<HTMLLIElement>(null);
+  const tabAllRef = useRef<HTMLLIElement>(null);
+  const tabInWorkRef = useRef<HTMLLIElement>(null);
+  const tabCompletedRef = useRef<HTMLLIElement>(null);
 
-  const tabs = [tabAll, tabInWork, tabCompleted];
+  const tabs = [tabAllRef, tabInWorkRef, tabCompletedRef];
   const [activeTab, setActiveTab] = useState<string>("all");
 
   function toggleActive(e: SyntheticEvent) {
@@ -80,19 +80,23 @@ function Lists(props: ListProps): ReactElement {
         <li
           className="listsItem listItemActive"
           onClick={groupAllOnClickHandler}
-          ref={tabAll}
+          ref={tabAllRef}
         >
           <span>Все </span>
           <span>({counters.todosAllCount})</span>
         </li>
-        <li className="listsItem" onClick={groupInWorkHandler} ref={tabInWork}>
+        <li
+          className="listsItem"
+          onClick={groupInWorkHandler}
+          ref={tabInWorkRef}
+        >
           <span>в работе</span>
           <span>({counters.todosInWorkCount})</span>
         </li>
         <li
           className="listsItem"
           onClick={groupCompletedHandler}
-          ref={tabCompleted}
+          ref={tabCompletedRef}
         >
           <span>сделано</span>
           <span>({counters.todosCompletedCount})</span>
@@ -100,12 +104,13 @@ function Lists(props: ListProps): ReactElement {
       </ul>
       <TodoList
         todos={todos}
-        deleteItem={deleteItem}
-        editItem={editItem}
-        activeTab={activeTab}
-        removeItemFromList={removeItemFromList}
-        validateTitle={validateTitle}
         getTodos={getTodos}
+        deleteTodo={deleteTodo}
+        editTodo={editTodo}
+        removeTodoFromList={removeTodoFromList}
+        activeTab={activeTab}
+        validateTitle={validateTitle}
+        toggleShowValidateError={toggleShowValidateError}
       ></TodoList>
     </>
   );

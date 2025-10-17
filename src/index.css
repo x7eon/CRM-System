@@ -1,27 +1,27 @@
 @font-face {
-  font-family: "NunitoSans";
-  src: local("Nunito Sans"),
-  url("../src/assets/fonts/NunitoSans-Variable.ttf") format("truetype");
+    font-family: "NunitoSans";
+    src: local("Nunito Sans"),
+    url("../src/assets/fonts/NunitoSans-Variable.ttf") format("truetype");
 }
 
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+    font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+    font-weight: 400;
 }
 
 body {
-  font-family: "NunitoSans", Arial, sans-serif;
-  background-color: #e8e8e8;
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+    font-family: "NunitoSans", Arial, sans-serif;
+    background-color: #e8e8e8;
+    margin: 0;
+    display: flex;
+    place-items: center;
+    min-width: 320px;
+    min-height: 100vh;
 }
 
 ul, ol {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+    list-style: none;
+    margin: 0;
+    padding: 0;
 }

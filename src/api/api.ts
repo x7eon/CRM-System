@@ -1,3 +1,5 @@
+import type { TodoRequest } from "../types/types.ts";
+
 const BASE_URL = "https://easydev.club/api/v1";
 
 async function getTodosApi(status: string) {
@@ -11,14 +13,14 @@ async function getTodosApi(status: string) {
   }
 }
 
-async function addTodoApi(title: string) {
+async function addTodoApi({ title, isDone = false }: TodoRequest) {
   try {
     const response = await fetch(`${BASE_URL}/todos`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ title, isDone: false }),
+      body: JSON.stringify({ title, isDone }),
     });
     return response.json();
   } catch (e) {
@@ -36,7 +38,7 @@ async function deleteTodoApi(id: number) {
   }
 }
 
-async function editTodoApi(id: number, title?: string, isDone?: boolean) {
+async function editTodoApi(id: number, { title, isDone }: TodoRequest) {
   try {
     const response = await fetch(`${BASE_URL}/todos/${id}`, {
       method: "PUT",

@@ -1,6 +1,6 @@
 import "./TodoList.scss";
 import TodoItem from "../TodoItem/TodoItem";
-import type { ITodoItem } from "../TodoItem/TodoItem";
+import type { ITodoItem } from "../../types/types.ts";
 import { type ReactElement } from "react";
 
 interface ITodoList {

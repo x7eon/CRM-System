@@ -7,13 +7,7 @@ import {
 } from "react";
 import { useRef } from "react";
 import ErrorValidateText from "../ErrorValidateText/ErrorValidateText.tsx";
-
-export interface ITodoItem {
-  id: number;
-  title: string;
-  created: string;
-  isDone: boolean;
-}
+import type { ITodoItem } from "../../types/types.ts";
 
 export interface ITodoItemProps {
   todo: ITodoItem;

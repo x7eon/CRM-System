@@ -6,7 +6,7 @@ import {
   useState,
 } from "react";
 import type { ITodoItem } from "../TodoItem/TodoItem.tsx";
-import type { ICounters } from "../../App.tsx";
+import type { ICounters } from "../../pages/TodoListPage.tsx";
 import TodoList from "../TodoList/TodoList.tsx";
 
 interface ListProps {

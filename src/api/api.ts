@@ -9,7 +9,7 @@ async function getTodosApi(status: string) {
     });
     return response.json();
   } catch (e) {
-    console.log("Произошла ошибка: " + e);
+    console.log("Произошла ошибка при получении todo: " + e);
   }
 }
 
@@ -24,7 +24,7 @@ async function addTodoApi({ title, isDone = false }: TodoRequest) {
     });
     return response.json();
   } catch (e) {
-    console.log("Произошла ошибка: " + e);
+    console.log("Произошла ошибка при добавлении todo: " + e);
   }
 }
 
@@ -34,7 +34,7 @@ async function deleteTodoApi(id: number) {
       method: "DELETE",
     });
   } catch (e) {
-    console.log("Произошла ошибка: " + e);
+    console.log("Произошла ошибка при удалении todo: " + e);
   }
 }
 
@@ -49,7 +49,7 @@ async function editTodoApi(id: number, { title, isDone }: TodoRequest) {
     });
     return response.json();
   } catch (e) {
-    console.log("Произошла ошибка: " + e);
+    console.log("Произошла ошибка при изменении todo: " + e);
   }
 }
 

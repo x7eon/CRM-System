@@ -3,38 +3,35 @@ import {
   type ReactElement,
   useRef,
   type SyntheticEvent,
-  useState,
+  type Dispatch,
+  type SetStateAction,
 } from "react";
-import type { ITodoItem } from "../TodoItem/TodoItem.tsx";
+import type { ITodoItem } from "../../types/types.ts";
 import type { ICounters } from "../../pages/TodoListPage.tsx";
 import TodoList from "../TodoList/TodoList.tsx";
 
 interface ListProps {
   todos: ITodoItem[];
-  getTodos: (status: string) => void;
+  counters: ICounters;
+
+  getTodosData: (status: string) => void;
   deleteTodo: (id: number) => void;
   editTodo: (id: number, title?: string, isDone?: boolean) => void;
-  counters: ICounters;
-  getCounters: () => void;
-  removeTodoFromList: (id: number) => void;
-  validateTitle: (title: string) => { isValid: boolean; errorText: string };
-  toggleShowValidateError: (
-    isValid: boolean,
-    errorElement: React.RefObject<HTMLSpanElement | null>,
-  ) => void;
+  updateTodosWithFiltering: () => void;
+
+  setActiveTab: Dispatch<SetStateAction<string>>;
 }
 
 function Lists(props: ListProps): ReactElement {
   const {
     todos,
-    getTodos,
-    getCounters,
+    counters,
+    getTodosData,
     deleteTodo,
     editTodo,
-    counters,
-    removeTodoFromList,
-    validateTitle,
-    toggleShowValidateError,
+    updateTodosWithFiltering,
+
+    setActiveTab,
   } = props;
 
   const tabAllRef = useRef<HTMLLIElement>(null);
@@ -42,7 +39,6 @@ function Lists(props: ListProps): ReactElement {
   const tabCompletedRef = useRef<HTMLLIElement>(null);
 
   const tabs = [tabAllRef, tabInWorkRef, tabCompletedRef];
-  const [activeTab, setActiveTab] = useState<string>("all");
 
   function toggleActive(e: SyntheticEvent) {
     e.currentTarget.classList.add("listItemActive");
@@ -55,22 +51,19 @@ function Lists(props: ListProps): ReactElement {
 
   function groupAllOnClickHandler(e: SyntheticEvent<HTMLLIElement>) {
     toggleActive(e);
-    getTodos("all");
-    getCounters();
+    getTodosData("all");
     setActiveTab("all");
   }
 
   function groupInWorkHandler(e: SyntheticEvent<HTMLLIElement>) {
     toggleActive(e);
-    getTodos("inWork");
-    getCounters();
+    getTodosData("inWork");
     setActiveTab("inWork");
   }
 
   function groupCompletedHandler(e: SyntheticEvent<HTMLLIElement>) {
     toggleActive(e);
-    getTodos("completed");
-    getCounters();
+    getTodosData("completed");
     setActiveTab("completed");
   }
 
@@ -104,13 +97,9 @@ function Lists(props: ListProps): ReactElement {
       </ul>
       <TodoList
         todos={todos}
-        getTodos={getTodos}
         deleteTodo={deleteTodo}
         editTodo={editTodo}
-        removeTodoFromList={removeTodoFromList}
-        activeTab={activeTab}
-        validateTitle={validateTitle}
-        toggleShowValidateError={toggleShowValidateError}
+        updateTodosWithFiltering={updateTodosWithFiltering}
       ></TodoList>
     </>
   );

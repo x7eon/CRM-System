@@ -8,32 +8,17 @@ import {
 import { useRef } from "react";
 import ErrorValidateText from "../ErrorValidateText/ErrorValidateText.tsx";
 import type { ITodoItem } from "../../types/types.ts";
+import validateTitle from "../../helpers/validateTitle.ts";
 
 export interface ITodoItemProps {
   todo: ITodoItem;
-  getTodos: (status: string) => void;
   deleteTodo: (id: number) => void;
   editTodo: (id: number, title?: string, isDone?: boolean) => void;
-  activeTab: string;
-  removeTodoFromList: (id: number) => void;
-  validateTitle: (title: string) => { isValid: boolean; errorText: string };
-  toggleShowValidateError: (
-    isValid: boolean,
-    errorElement: React.RefObject<HTMLSpanElement | null>,
-  ) => void;
+  updateTodosWithFiltering: () => void;
 }
 
 function TodoItem(props: ITodoItemProps): ReactElement {
-  const {
-    todo,
-    deleteTodo,
-    editTodo,
-    activeTab,
-    removeTodoFromList,
-    validateTitle,
-    getTodos,
-    toggleShowValidateError,
-  } = props;
+  const { todo, deleteTodo, editTodo, updateTodosWithFiltering } = props;
 
   const id = todo.id;
   const todoTitle = todo.title;
@@ -77,17 +62,10 @@ function TodoItem(props: ITodoItemProps): ReactElement {
         const validateResult = validateTitle(inputTextRef!.current!.value);
         setValidateErrorText(validateResult.errorText);
         isValid.current = validateResult.isValid;
-        toggleShowValidateError(isValid!.current, errorTextRef);
 
         if (isValid.current) {
           await editTodo(id, inputText);
-          if (activeTab === "inWork") {
-            await getTodos("inWork");
-          } else if (activeTab === "completed") {
-            await getTodos("completed");
-          } else {
-            await getTodos("all");
-          }
+          await updateTodosWithFiltering();
           inputToggle();
         } else {
           inputTextRef!.current!.focus();
@@ -98,8 +76,13 @@ function TodoItem(props: ITodoItemProps): ReactElement {
     }
   }
 
-  function deleteButtonHandler() {
-    deleteTodo(id);
+  async function deleteButtonHandler() {
+    try {
+      await deleteTodo(id);
+      await updateTodosWithFiltering();
+    } catch (e) {
+      console.log(e);
+    }
   }
 
   function cancelButtonHandler() {
@@ -113,10 +96,8 @@ function TodoItem(props: ITodoItemProps): ReactElement {
   async function inputCheckboxHandler(e: React.ChangeEvent<HTMLInputElement>) {
     try {
       setCheckBoxIsDone(e.target.checked);
-      editTodo(id, inputText, e.target.checked);
-      if (activeTab !== "all") {
-        removeTodoFromList(id);
-      }
+      await editTodo(id, inputText, e.target.checked);
+      await updateTodosWithFiltering();
     } catch (e) {
       console.log(e);
     }
@@ -170,6 +151,7 @@ function TodoItem(props: ITodoItemProps): ReactElement {
         errorValidateText={validateErrorText}
         errorTextRef={errorTextRef}
         styles={{ marginLeft: 32 }}
+        isValid={isValid.current}
       ></ErrorValidateText>
     </div>
   );

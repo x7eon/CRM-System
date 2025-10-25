@@ -24,30 +24,25 @@ function TodoListPage(): ReactElement {
     todosCompletedCount: 0,
   });
 
+  const [activeTab, setActiveTab] = useState<string>("all");
+
   useEffect(() => {
-    getTodos("all");
-    getCounters();
+    getTodosData("all");
   }, []);
 
-  async function getCounters() {
-    try {
-      const response = await getTodosApi("all");
-      const data = response.info;
-      setCounters({
-        ...counters,
-        todosAllCount: data.all,
-        todosInWorkCount: data.inWork,
-        todosCompletedCount: data.completed,
-      });
-    } catch (e) {
-      console.log(e);
-    }
-  }
-
-  async function getTodos(status: string) {
+  async function getTodosData(status: string) {
     try {
       const response = await getTodosApi(status);
       setTodos(response.data);
+
+      setCounters({
+        ...counters,
+        todosAllCount: response.info.all,
+        todosInWorkCount: response.info.inWork,
+        todosCompletedCount: response.info.completed,
+      });
+
+      return response.data;
     } catch (e) {
       console.log(e);
     }
@@ -55,20 +50,20 @@ function TodoListPage(): ReactElement {
 
   async function addTodo(title: string) {
     try {
-      const response = await addTodoApi({ title });
-      setTodos([...todos, response]);
-      await getCounters();
+      await addTodoApi({ title });
     } catch (e) {
       console.log(e);
     }
   }
 
+  async function updateTodosWithFiltering() {
+    const updatedTodos = await getTodosData("all");
+    filterTodos(updatedTodos, activeTab);
+  }
+
   async function deleteTodo(id: number) {
     try {
       await deleteTodoApi(id);
-      const filteredTodos = todos.filter((item) => item.id !== id);
-      setTodos([...filteredTodos]);
-      await getCounters();
     } catch (e) {
       console.log(e);
     }
@@ -77,71 +72,39 @@ function TodoListPage(): ReactElement {
   async function editTodo(id: number, title?: string, isDone?: boolean) {
     try {
       await editTodoApi(id, { title, isDone });
-      await getCounters();
     } catch (e) {
       console.log(e);
     }
   }
 
-  function removeItemFromList(id: number) {
-    setTodos([...todos.filter((item) => item.id !== id)]);
-  }
-
-  function validateTitle(title: string) {
-    const titleLength = title.length;
-    if (title === "") {
-      return { isValid: false, errorText: "Это поле не может быть пустым" };
-    } else if (
-      titleLength < 2 ||
-      (title.trim().length < 2 && title.trim() !== "")
-    ) {
-      return {
-        isValid: false,
-        errorText: "Минимальная длина текста 2 символа",
-      };
-    } else if (titleLength > 64) {
-      return {
-        isValid: false,
-        errorText: "Максимальная длина текста 64 символа",
-      };
-    } else if (title.trim() === "") {
-      return {
-        isValid: false,
-        errorText: "Текст не должен быть пустым",
-      };
-    } else {
-      return { isValid: true, errorText: "" };
-    }
-  }
-
-  function toggleShowValidateError(
-    isValid: boolean,
-    errorElement: React.RefObject<HTMLSpanElement | null>,
-  ) {
-    if (!isValid) {
-      errorElement.current!.classList.add("errorText_visible");
-    } else {
-      errorElement.current!.classList.remove("errorText_visible");
-    }
+  function filterTodos(todos: ITodoItem[], status: string) {
+    const filteredTodos = todos.filter((item) => {
+      if (status === "all") {
+        return item;
+      } else if (status === "completed") {
+        return item.isDone;
+      } else if (status === "inWork") {
+        return !item.isDone;
+      }
+    });
+    setTodos(filteredTodos);
   }
 
   return (
     <>
       <AddTodo
         addTodo={addTodo}
-        validateTitle={validateTitle}
-        toggleShowValidateError={toggleShowValidateError}
+        activeTab={activeTab}
+        updateTodosWithFiltering={updateTodosWithFiltering}
       />
       <Lists
         todos={todos}
         counters={counters}
-        getTodos={getTodos}
-        getCounters={getCounters}
+        getTodosData={getTodosData}
         deleteTodo={deleteTodo}
         editTodo={editTodo}
-        removeTodoFromList={removeItemFromList}
-        validateTitle={validateTitle}
-        toggleShowValidateError={toggleShowValidateError}
+        updateTodosWithFiltering={updateTodosWithFiltering}
+        setActiveTab={setActiveTab}
       />
     </>
   );

@@ -1,18 +1,16 @@
 import "./AddTodo.scss";
 import { type SyntheticEvent, useRef, useState } from "react";
 import ErrorValidateText from "../ErrorValidateText/ErrorValidateText.tsx";
+import validateTitle from "../../helpers/validateTitle.ts";
 
 interface AddTodoProps {
-  addTodo: (title: string) => void;
-  validateTitle: (title: string) => { isValid: boolean; errorText: string };
-  toggleShowValidateError: (
-    isValid: boolean,
-    errorElement: React.RefObject<HTMLSpanElement | null>,
-  ) => void;
+  addTodo: (title: string, activeTab: string) => void;
+  activeTab: string;
+  updateTodosWithFiltering: () => void;
 }
 
 function AddTodo(props: AddTodoProps) {
-  const { addTodo, validateTitle, toggleShowValidateError } = props;
+  const { addTodo, activeTab, updateTodosWithFiltering } = props;
 
   const inputRef = useRef<HTMLInputElement | null>(null);
 
@@ -26,9 +24,9 @@ function AddTodo(props: AddTodoProps) {
       const validateResult = validateTitle(inputRef.current!.value);
       setValidateErrorText(validateResult.errorText);
       isValid.current = validateResult.isValid;
-      toggleShowValidateError(isValid.current, errorTextRef);
       if (isValid.current) {
-        addTodo(inputRef!.current!.value);
+        await addTodo(inputRef!.current!.value, activeTab);
+        updateTodosWithFiltering();
         inputRef!.current!.value = "";
         isValid.current = false;
       } else {
@@ -55,6 +53,7 @@ function AddTodo(props: AddTodoProps) {
       <ErrorValidateText
         errorValidateText={validateErrorText}
         errorTextRef={errorTextRef}
+        isValid={isValid.current}
       ></ErrorValidateText>
     </>
   );

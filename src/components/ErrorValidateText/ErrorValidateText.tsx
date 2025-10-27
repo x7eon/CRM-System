@@ -1,22 +1,18 @@
 import "./ErrorValidateText.scss";
 
 interface ErrorValidateProps {
-  errorValidateText: string;
-  errorTextRef: React.RefObject<HTMLSpanElement | null>;
+  validateErrorText: string;
   styles?: React.CSSProperties;
   isValid: boolean;
 }
 
 function ErrorValidateText(props: ErrorValidateProps) {
-  const { errorValidateText, errorTextRef, styles, isValid } = props;
+  const { validateErrorText, styles, isValid } = props;
 
   return (
     <div className="errorContainer" style={styles}>
-      <span
-        className={isValid ? "errorText" : "errorText errorText-visible"}
-        ref={errorTextRef}
-      >
-        {errorValidateText}
+      <span className={isValid ? "errorText" : "errorText errorText-visible"}>
+        {validateErrorText}
       </span>
     </div>
   );

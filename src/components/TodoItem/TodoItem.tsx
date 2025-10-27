@@ -5,44 +5,31 @@ import {
   useEffect,
   useState,
 } from "react";
-import { useRef } from "react";
 import ErrorValidateText from "../ErrorValidateText/ErrorValidateText.tsx";
-import type { ITodoItem } from "../../types/types.ts";
+import type { Todo } from "../../types/types.ts";
 import validateTitle from "../../helpers/validateTitle.ts";
+import { deleteTodoApi, editTodoApi } from "../../api/api.ts";
 
 export interface ITodoItemProps {
-  todo: ITodoItem;
-  deleteTodo: (id: number) => void;
-  editTodo: (id: number, title?: string, isDone?: boolean) => void;
-  updateTodosWithFiltering: () => void;
+  todo: Todo;
+  updateTodos: () => Promise<void>;
 }
 
 function TodoItem(props: ITodoItemProps): ReactElement {
-  const { todo, deleteTodo, editTodo, updateTodosWithFiltering } = props;
+  const { todo, updateTodos } = props;
 
   const id = todo.id;
   const todoTitle = todo.title;
 
   const [inputText, setInputText] = useState<string>(todo.title);
   const [checkBoxIsDone, setCheckBoxIsDone] = useState<boolean>(todo.isDone);
-  const [isDisabledInput, setIsDisabledInput] = useState(true);
+  const [isEditMode, setIsEditMode] = useState<boolean>(false);
   const [validateErrorText, setValidateErrorText] = useState<string>("");
+  const [isValidTodoTitle, setIsValidTodoTitle] = useState<boolean>(false);
   const [isDisabledSaveButton, setIsDisabledSaveButton] =
     useState<boolean>(false);
 
-  const inputTextRef = useRef<HTMLInputElement | null>(null);
-  const errorTextRef = useRef<HTMLSpanElement | null>(null);
-  const isValid = useRef<boolean>(false);
-
-  useEffect(() => {
-    inputTextRef!.current!.focus();
-  }, [isDisabledInput]);
-
-  function inputToggle() {
-    setIsDisabledInput((prev) => !prev);
-  }
-
-  function inputTextHandler(e: SyntheticEvent<HTMLInputElement>) {
+  function handleInputTextChange(e: SyntheticEvent<HTMLInputElement>): void {
     setInputText(e.currentTarget.value);
     if (e.currentTarget.value === todoTitle) {
       setIsDisabledSaveButton(true);
@@ -51,57 +38,86 @@ function TodoItem(props: ITodoItemProps): ReactElement {
     }
   }
 
-  function editButtonHandler() {
-    inputToggle();
+  function editButtonHandler(): void {
+    setIsEditMode(true);
     setIsDisabledSaveButton(true);
   }
 
-  async function saveButtonHandler() {
+  async function saveButtonHandler(): Promise<void> {
     try {
-      if (!isDisabledInput) {
-        const validateResult = validateTitle(inputTextRef!.current!.value);
+      if (isEditMode) {
+        const validateResult = validateTitle(inputText);
         setValidateErrorText(validateResult.errorText);
-        isValid.current = validateResult.isValid;
-
-        if (isValid.current) {
-          await editTodo(id, inputText);
-          await updateTodosWithFiltering();
-          inputToggle();
-        } else {
-          inputTextRef!.current!.focus();
-        }
+        setIsValidTodoTitle(validateResult.isValid);
       }
     } catch (e) {
       console.log(e);
     }
   }
 
-  async function deleteButtonHandler() {
+  async function deleteButtonHandler(): Promise<void> {
     try {
       await deleteTodo(id);
-      await updateTodosWithFiltering();
+      await updateTodos();
     } catch (e) {
       console.log(e);
     }
   }
 
-  function cancelButtonHandler() {
-    if (!isDisabledInput) {
-      inputToggle();
+  function cancelButtonHandler(): void {
+    if (isEditMode) {
+      setIsEditMode(false);
       setInputText(todoTitle);
       setValidateErrorText("");
     }
   }
 
-  async function inputCheckboxHandler(e: React.ChangeEvent<HTMLInputElement>) {
+  async function inputCheckboxHandler(
+    e: React.ChangeEvent<HTMLInputElement>,
+  ): Promise<void> {
     try {
       setCheckBoxIsDone(e.target.checked);
       await editTodo(id, inputText, e.target.checked);
-      await updateTodosWithFiltering();
+      await updateTodos();
     } catch (e) {
       console.log(e);
     }
   }
+
+  async function deleteTodo(id: number): Promise<void> {
+    try {
+      await deleteTodoApi(id);
+    } catch {
+      alert("Ошибка удаления задачи. Попробуйте снова");
+    }
+  }
+
+  async function editTodo(
+    id: number,
+    title?: string,
+    isDone?: boolean,
+  ): Promise<void> {
+    try {
+      await editTodoApi(id, { title, isDone });
+    } catch {
+      alert("Ошибка изменения задачи. Попробуйте снова");
+    }
+  }
+
+  useEffect(() => {
+    (async () => {
+      try {
+        if (isValidTodoTitle) {
+          await editTodo(id, inputText);
+          await updateTodos();
+          setIsEditMode(false);
+          setIsValidTodoTitle(false);
+        }
+      } catch (e) {
+        console.log(e);
+      }
+    })();
+  }, [isValidTodoTitle]);
 
   return (
     <div className="todoItemContainer">
@@ -112,46 +128,45 @@ function TodoItem(props: ITodoItemProps): ReactElement {
           id="checkbox"
           checked={checkBoxIsDone}
           onChange={inputCheckboxHandler}
-        ></input>
+        />
         <input
           type="text"
           className="todoItemInputTitle"
           value={inputText}
-          disabled={isDisabledInput}
-          ref={inputTextRef}
-          onChange={inputTextHandler}
+          disabled={!isEditMode}
+          onChange={handleInputTextChange}
         />
       </div>
       <div className="todoItemButtons">
-        {isDisabledInput ? (
-          <button
-            className="todoButton todoItemEditButton"
-            onClick={editButtonHandler}
-          ></button>
+        {!isEditMode ? (
+          <>
+            <button
+              className="todoButton todoItemEditButton"
+              onClick={editButtonHandler}
+            />
+            <button
+              className="todoButton todoItemDeleteButton"
+              onClick={deleteButtonHandler}
+            />
+          </>
         ) : (
-          <button
-            className="todoButton todoItemSaveButton"
-            onClick={saveButtonHandler}
-            disabled={isDisabledSaveButton}
-          ></button>
-        )}
-        {isDisabledInput ? (
-          <button
-            className="todoButton todoItemDeleteButton"
-            onClick={deleteButtonHandler}
-          ></button>
-        ) : (
-          <button
-            className="todoButton todoItemCancelButton"
-            onClick={cancelButtonHandler}
-          ></button>
+          <>
+            <button
+              className="todoButton todoItemSaveButton"
+              onClick={saveButtonHandler}
+              disabled={isDisabledSaveButton}
+            />
+            <button
+              className="todoButton todoItemCancelButton"
+              onClick={cancelButtonHandler}
+            />
+          </>
         )}
       </div>
       <ErrorValidateText
-        errorValidateText={validateErrorText}
-        errorTextRef={errorTextRef}
+        validateErrorText={validateErrorText}
         styles={{ marginLeft: 32 }}
-        isValid={isValid.current}
+        isValid={isValidTodoTitle}
       ></ErrorValidateText>
     </div>
   );

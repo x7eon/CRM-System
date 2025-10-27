@@ -1,41 +1,53 @@
 import "./AddTodo.scss";
-import { type SyntheticEvent, useRef, useState } from "react";
+import { type SyntheticEvent, useEffect, useState } from "react";
 import ErrorValidateText from "../ErrorValidateText/ErrorValidateText.tsx";
 import validateTitle from "../../helpers/validateTitle.ts";
+import { addTodoApi } from "../../api/api.ts";
 
 interface AddTodoProps {
-  addTodo: (title: string, activeTab: string) => void;
-  activeTab: string;
-  updateTodosWithFiltering: () => void;
+  updateTodos: () => Promise<void>;
 }
 
 function AddTodo(props: AddTodoProps) {
-  const { addTodo, activeTab, updateTodosWithFiltering } = props;
+  const { updateTodos } = props;
 
-  const inputRef = useRef<HTMLInputElement | null>(null);
-
-  const errorTextRef = useRef<HTMLSpanElement | null>(null);
-  const isValid = useRef<boolean>(false);
+  const [isValidTodoTitle, setIsValidTodoTitle] = useState<boolean>(false);
   const [validateErrorText, setValidateErrorText] = useState<string>("");
+  const [inputText, setInputText] = useState<string>("");
 
-  async function handleSubmit(e: SyntheticEvent) {
+  async function handleSubmit(e: SyntheticEvent): Promise<void> {
+    e.preventDefault();
+    const validateResult = validateTitle(inputText);
+    setValidateErrorText(validateResult.errorText);
+    setIsValidTodoTitle(validateResult.isValid);
+  }
+
+  function handleInputTextChange(e: SyntheticEvent<HTMLInputElement>): void {
+    setInputText(e.currentTarget.value);
+  }
+
+  async function addTodo(title: string): Promise<void> {
     try {
-      e.preventDefault();
-      const validateResult = validateTitle(inputRef.current!.value);
-      setValidateErrorText(validateResult.errorText);
-      isValid.current = validateResult.isValid;
-      if (isValid.current) {
-        await addTodo(inputRef!.current!.value, activeTab);
-        updateTodosWithFiltering();
-        inputRef!.current!.value = "";
-        isValid.current = false;
-      } else {
-        inputRef.current!.focus();
-      }
-    } catch (e) {
-      console.error(e);
+      await addTodoApi({ title });
+    } catch {
+      alert("Ошибка добавления задачи. Попробуйте снова");
     }
   }
+
+  useEffect(() => {
+    (async () => {
+      try {
+        if (isValidTodoTitle) {
+          await addTodo(inputText);
+          await updateTodos();
+          setInputText("");
+          setIsValidTodoTitle(false);
+        }
+      } catch (e) {
+        console.log(e);
+      }
+    })();
+  }, [isValidTodoTitle]);
 
   return (
     <>
@@ -44,16 +56,16 @@ function AddTodo(props: AddTodoProps) {
           className="addTodoInput"
           type="text"
           placeholder="Task To Be Done..."
-          ref={inputRef}
-        ></input>
+          value={inputText}
+          onChange={handleInputTextChange}
+        />
         <button type="submit" className="AddButton">
           Add
         </button>
       </form>
       <ErrorValidateText
-        errorValidateText={validateErrorText}
-        errorTextRef={errorTextRef}
-        isValid={isValid.current}
+        validateErrorText={validateErrorText}
+        isValid={isValidTodoTitle}
       ></ErrorValidateText>
     </>
   );

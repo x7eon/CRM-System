@@ -1,0 +1,46 @@
+.addTodoForm {
+  display: flex;
+  justify-content: space-between;
+}
+
+.AddButton {
+  inline-size: 110px;
+  padding: 10px 45px;
+  background-color: #5393ff;
+  color: #fff;
+  font-size: 14px;
+  font-family: inherit;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.AddButton {
+  &:hover {
+    &::after {
+      position: relative;
+      content: 'Добавить';
+      padding: 5px;
+      top: -27px;
+      left: 29px;
+      font-size: 10px;
+      background-color: #fff;
+      border-radius: 5px;
+      color: #000;
+    }
+  }
+}
+
+.addTodoInput {
+  inline-size: 250px;
+  font-size: 16px;
+  padding: 5px;
+  border: none;
+  border-bottom: 2px solid rgba(14, 14, 14, 0.16);
+  background-color: inherit;
+
+  &:focus,
+  &:focus-visible {
+    outline: none;
+  }
+}

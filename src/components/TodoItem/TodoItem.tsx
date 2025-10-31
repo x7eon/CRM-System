@@ -7,7 +7,7 @@ import {
 } from "react";
 import ErrorValidateText from "../ErrorValidateText/ErrorValidateText.tsx";
 import type { Todo } from "../../types/types.ts";
-import validateTitle from "../../helpers/validateTitle.ts";
+import getValidateErrorText from "../../helpers/getValidateErrorText.ts";
 import { deleteTodoApi, editTodoApi } from "../../api/api.ts";
 
 export interface ITodoItemProps {
@@ -46,9 +46,9 @@ function TodoItem(props: ITodoItemProps): ReactElement {
   async function saveButtonHandler(): Promise<void> {
     try {
       if (isEditMode) {
-        const validateResult = validateTitle(inputText);
-        setValidateErrorText(validateResult.errorText);
-        setIsValidTodoTitle(validateResult.isValid);
+        const validateResult = getValidateErrorText(inputText);
+        setValidateErrorText(validateResult);
+        setIsValidTodoTitle(!validateResult);
       }
     } catch (e) {
       console.log(e);

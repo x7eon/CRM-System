@@ -5,7 +5,7 @@ export interface Todo {
   isDone: boolean;
 }
 
-export type TodoRequest = Partial<Omit<Todo, "created" | "id">>;
+export type TodoRequest = Partial<Pick<Todo, "title" | "isDone">>;
 
 export interface TodoInfo {
   all: number;
@@ -21,4 +21,8 @@ export interface MetaResponse<T, N> {
   };
 }
 
-export type Status = "all" | "completed" | "inWork";
+export enum StatusEnum {
+  all = "all",
+  completed = "completed",
+  inWork = "inWork",
+}

@@ -1,7 +1,7 @@
 import "./AddTodo.scss";
 import { type SyntheticEvent, useEffect, useState } from "react";
 import ErrorValidateText from "../ErrorValidateText/ErrorValidateText.tsx";
-import validateTitle from "../../helpers/validateTitle.ts";
+import getValidateErrorText from "../../helpers/getValidateErrorText.ts";
 import { addTodoApi } from "../../api/api.ts";
 
 interface AddTodoProps {
@@ -17,9 +17,9 @@ function AddTodo(props: AddTodoProps) {
 
   async function handleSubmit(e: SyntheticEvent): Promise<void> {
     e.preventDefault();
-    const validateResult = validateTitle(inputText);
-    setValidateErrorText(validateResult.errorText);
-    setIsValidTodoTitle(validateResult.isValid);
+    const validateResult = getValidateErrorText(inputText);
+    setValidateErrorText(validateResult);
+    setIsValidTodoTitle(!validateResult);
   }
 
   function handleInputTextChange(e: SyntheticEvent<HTMLInputElement>): void {
@@ -35,7 +35,7 @@ function AddTodo(props: AddTodoProps) {
   }
 
   useEffect(() => {
-    (async () => {
+    async function fetchData() {
       try {
         if (isValidTodoTitle) {
           await addTodo(inputText);
@@ -46,7 +46,8 @@ function AddTodo(props: AddTodoProps) {
       } catch (e) {
         console.log(e);
       }
-    })();
+    }
+    fetchData();
   }, [isValidTodoTitle]);
 
   return (

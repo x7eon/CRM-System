@@ -1,15 +1,15 @@
 import type {
   TodoRequest,
-  Status,
   TodoInfo,
   MetaResponse,
   Todo,
 } from "../types/types.ts";
+import { StatusEnum } from "../types/types.ts";
 
 const BASE_URL = "https://easydev.club/api/v1";
 
 async function getTodosApi(
-  status: Status,
+  status: StatusEnum,
 ): Promise<MetaResponse<Todo, TodoInfo>> {
   try {
     const response = await fetch(`${BASE_URL}/todos?filter=${status}`, {

@@ -1,10 +1,11 @@
 import type { ReactElement } from "react";
 import AddTodo from "../components/AddTodo/AddTodo.tsx";
-import Tabs from "../components/Tabs/Tabs.tsx";
+import TodosTabs from "../components/TodosTabs/TodosTabs.tsx";
 import TodoList from "../components/TodoList/TodoList.tsx";
 import { getTodosApi } from "../api/api.ts";
 import { useEffect, useState } from "react";
-import type { Todo, Status, TodoInfo } from "../types/types.ts";
+import type { Todo, TodoInfo } from "../types/types.ts";
+import { StatusEnum } from "../types/types.ts";
 
 function TodoListPage(): ReactElement {
   const [todos, setTodos] = useState<Todo[]>([]);
@@ -13,20 +14,15 @@ function TodoListPage(): ReactElement {
     inWork: 0,
     completed: 0,
   });
-  const [activeTab, setActiveTab] = useState<Status>("all");
+  const [activeTab, setActiveTab] = useState<StatusEnum>(StatusEnum.all);
 
-  async function getTodosData(status: Status): Promise<void> {
+  async function getTodosData(status: StatusEnum): Promise<void> {
     try {
       const response = await getTodosApi(status);
       setTodos(response.data);
 
       if (response.info) {
-        setCounters({
-          ...counters,
-          all: response.info.all,
-          inWork: response.info.inWork,
-          completed: response.info.completed,
-        });
+        setCounters(response.info);
       }
     } catch {
       alert(`Ошибка получения данных. Попробуйте обновить страницу`);
@@ -42,13 +38,13 @@ function TodoListPage(): ReactElement {
   }
 
   useEffect(() => {
-    getTodosData("all");
+    getTodosData(StatusEnum.all);
   }, []);
 
   return (
     <>
       <AddTodo updateTodos={updateTodos} />
-      <Tabs
+      <TodosTabs
         counters={counters}
         getTodosData={getTodosData}
         setActiveTab={setActiveTab}

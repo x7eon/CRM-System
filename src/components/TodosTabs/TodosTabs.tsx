@@ -1,18 +1,19 @@
-import "./Tabs.scss";
+import "./TodosTabs.scss";
 import { type ReactElement, type Dispatch, type SetStateAction } from "react";
-import type { Status, TodoInfo } from "../../types/types.ts";
+import type { TodoInfo } from "../../types/types.ts";
+import { StatusEnum } from "../../types/types.ts";
 
 interface ListProps {
   counters: TodoInfo;
-  getTodosData: (status: Status) => Promise<void>;
-  activeTab: Status;
-  setActiveTab: Dispatch<SetStateAction<Status>>;
+  getTodosData: (status: StatusEnum) => Promise<void>;
+  activeTab: StatusEnum;
+  setActiveTab: Dispatch<SetStateAction<StatusEnum>>;
 }
 
-function Tabs(props: ListProps): ReactElement {
+function TodosTabs(props: ListProps): ReactElement {
   const { counters, getTodosData, activeTab, setActiveTab } = props;
 
-  async function tabsHandler(status: Status): Promise<void> {
+  async function tabsHandler(status: StatusEnum): Promise<void> {
     try {
       await getTodosData(status);
       setActiveTab(status);
@@ -28,7 +29,7 @@ function Tabs(props: ListProps): ReactElement {
           className={
             activeTab === "all" ? "listsItem listItemActive" : "listsItem"
           }
-          onClick={() => tabsHandler("all")}
+          onClick={() => tabsHandler(StatusEnum.all)}
         >
           <span>Все </span>
           <span>({counters.all})</span>
@@ -37,7 +38,7 @@ function Tabs(props: ListProps): ReactElement {
           className={
             activeTab === "inWork" ? "listsItem listItemActive" : "listsItem"
           }
-          onClick={() => tabsHandler("inWork")}
+          onClick={() => tabsHandler(StatusEnum.inWork)}
         >
           <span>в работе</span>
           <span>({counters.inWork})</span>
@@ -46,7 +47,7 @@ function Tabs(props: ListProps): ReactElement {
           className={
             activeTab === "completed" ? "listsItem listItemActive" : "listsItem"
           }
-          onClick={() => tabsHandler("completed")}
+          onClick={() => tabsHandler(StatusEnum.completed)}
         >
           <span>сделано</span>
           <span>({counters.completed})</span>
@@ -56,4 +57,4 @@ function Tabs(props: ListProps): ReactElement {
   );
 }
 
-export default Tabs;
+export default TodosTabs;

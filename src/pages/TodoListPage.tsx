@@ -1,9 +1,9 @@
-import type { ReactElement } from "react";
+import { type ReactElement, useEffect } from "react";
 import AddTodo from "../components/AddTodo/AddTodo.tsx";
 import TodosTabs from "../components/TodosTabs/TodosTabs.tsx";
 import TodoList from "../components/TodoList/TodoList.tsx";
 import { getTodosApi } from "../api/api.ts";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { Todo, TodoInfo } from "../types/types.ts";
 import { StatusEnum } from "../types/types.ts";
 
@@ -37,14 +37,29 @@ function TodoListPage(): ReactElement {
     }
   }
 
+  function autoUpdateTodos(): void {
+    setInterval(async () => {
+      try {
+        await updateTodos();
+      } catch (e) {
+        console.log(e);
+      }
+    }, 5000);
+  }
+
   useEffect(() => {
     getTodosData(StatusEnum.all);
+    autoUpdateTodos();
   }, []);
 
   return (
     <>
       <AddTodo updateTodos={updateTodos} />
-      <TodosTabs counters={counters} getTodosData={getTodosData} />
+      <TodosTabs
+        counters={counters}
+        getTodosData={getTodosData}
+        setActiveTab={setActiveTab}
+      />
       <TodoList todos={todos} updateTodos={updateTodos} />
     </>
   );

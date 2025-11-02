@@ -1,16 +1,16 @@
-import "./TodosTabs.scss";
-import { type ReactElement } from "react";
+import { type ReactElement, type Dispatch, type SetStateAction } from "react";
 import type { TodoInfo } from "../../types/types.ts";
 import { StatusEnum } from "../../types/types.ts";
 import { Tabs, type TabsProps } from "antd";
 
 interface ListProps {
   counters: TodoInfo;
+  setActiveTab: Dispatch<SetStateAction<StatusEnum>>;
   getTodosData: (status: StatusEnum) => Promise<void>;
 }
 
 function TodosTabs(props: ListProps): ReactElement {
-  const { counters, getTodosData } = props;
+  const { counters, getTodosData, setActiveTab } = props;
 
   const onChange = async (key: string): Promise<void> => {
     if (
@@ -20,6 +20,7 @@ function TodosTabs(props: ListProps): ReactElement {
     ) {
       try {
         await getTodosData(key);
+        setActiveTab(key);
       } catch (e) {
         console.log(e);
       }
@@ -30,17 +31,17 @@ function TodosTabs(props: ListProps): ReactElement {
     {
       key: StatusEnum.all,
       label: `Все (${counters.all})`,
-      children: "Content of Tab Pane 1",
+      // children: "Content of Tab Pane 1", // TODO убрать чилдрены тут везде
     },
     {
       key: StatusEnum.inWork,
       label: `в работе (${counters.inWork})`,
-      children: "Content of Tab Pane 2",
+      // children: "Content of Tab Pane 2",
     },
     {
       key: StatusEnum.completed,
       label: `сделано (${counters.completed})`,
-      children: "Content of Tab Pane 3",
+      // children: "Content of Tab Pane 3",
     },
   ];
 

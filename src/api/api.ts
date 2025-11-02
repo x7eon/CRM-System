@@ -1,3 +1,4 @@
+import axios from "axios";
 import type {
   TodoRequest,
   TodoInfo,
@@ -11,31 +12,23 @@ const BASE_URL = "https://easydev.club/api/v1";
 async function getTodosApi(
   status: StatusEnum,
 ): Promise<MetaResponse<Todo, TodoInfo>> {
-  try {
-    const response = await fetch(`${BASE_URL}/todos?filter=${status}`, {
-      method: "GET",
+  return axios
+    .get(`${BASE_URL}/todos?filter=${status}`)
+    .then((res) => res.data)
+    .catch((e) => {
+      console.log("Произошла ошибка при получении todo: " + e);
+      throw e;
     });
-    return response.json();
-  } catch (e) {
-    console.log("Произошла ошибка при получении todo: " + e);
-    throw e;
-  }
 }
 
 async function addTodoApi(title: TodoRequest): Promise<Todo> {
-  try {
-    const response = await fetch(`${BASE_URL}/todos`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(title),
+  return axios
+    .post(`${BASE_URL}/todos`, title)
+    .then((res) => res.data)
+    .catch((e) => {
+      console.log("Произошла ошибка при добавлении todo: " + e);
+      throw e;
     });
-    return response.json();
-  } catch (e) {
-    console.log("Произошла ошибка при добавлении todo: " + e);
-    throw e;
-  }
 }
 
 async function deleteTodoApi(id: number): Promise<void> {

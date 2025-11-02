@@ -44,12 +44,7 @@ function TodoListPage(): ReactElement {
   return (
     <>
       <AddTodo updateTodos={updateTodos} />
-      <TodosTabs
-        counters={counters}
-        getTodosData={getTodosData}
-        setActiveTab={setActiveTab}
-        activeTab={activeTab}
-      />
+      <TodosTabs counters={counters} getTodosData={getTodosData} />
       <TodoList todos={todos} updateTodos={updateTodos} />
     </>
   );

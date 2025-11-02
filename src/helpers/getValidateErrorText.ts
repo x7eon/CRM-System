@@ -1,3 +1,5 @@
+// TODO удалить полностью
+
 function getValidateErrorText(title: string): string {
   const maxTitleLength = 64;
   const minTitleLength = 2;

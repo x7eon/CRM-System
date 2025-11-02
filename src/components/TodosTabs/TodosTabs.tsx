@@ -1,60 +1,50 @@
 import "./TodosTabs.scss";
-import { type ReactElement, type Dispatch, type SetStateAction } from "react";
+import { type ReactElement } from "react";
 import type { TodoInfo } from "../../types/types.ts";
 import { StatusEnum } from "../../types/types.ts";
+import { Tabs, type TabsProps } from "antd";
 
 interface ListProps {
   counters: TodoInfo;
   getTodosData: (status: StatusEnum) => Promise<void>;
-  activeTab: StatusEnum;
-  setActiveTab: Dispatch<SetStateAction<StatusEnum>>;
 }
 
 function TodosTabs(props: ListProps): ReactElement {
-  const { counters, getTodosData, activeTab, setActiveTab } = props;
+  const { counters, getTodosData } = props;
 
-  async function tabsHandler(status: StatusEnum): Promise<void> {
-    try {
-      await getTodosData(status);
-      setActiveTab(status);
-    } catch (e) {
-      console.log(e);
+  const onChange = async (key: string): Promise<void> => {
+    if (
+      key === StatusEnum.all ||
+      key === StatusEnum.inWork ||
+      key === StatusEnum.completed
+    ) {
+      try {
+        await getTodosData(key);
+      } catch (e) {
+        console.log(e);
+      }
     }
-  }
+  };
 
-  return (
-    <>
-      <ul className="lists">
-        <li
-          className={
-            activeTab === "all" ? "listsItem listItemActive" : "listsItem"
-          }
-          onClick={() => tabsHandler(StatusEnum.all)}
-        >
-          <span>Все </span>
-          <span>({counters.all})</span>
-        </li>
-        <li
-          className={
-            activeTab === "inWork" ? "listsItem listItemActive" : "listsItem"
-          }
-          onClick={() => tabsHandler(StatusEnum.inWork)}
-        >
-          <span>в работе</span>
-          <span>({counters.inWork})</span>
-        </li>
-        <li
-          className={
-            activeTab === "completed" ? "listsItem listItemActive" : "listsItem"
-          }
-          onClick={() => tabsHandler(StatusEnum.completed)}
-        >
-          <span>сделано</span>
-          <span>({counters.completed})</span>
-        </li>
-      </ul>
-    </>
-  );
+  const items: TabsProps["items"] = [
+    {
+      key: StatusEnum.all,
+      label: `Все (${counters.all})`,
+      children: "Content of Tab Pane 1",
+    },
+    {
+      key: StatusEnum.inWork,
+      label: `в работе (${counters.inWork})`,
+      children: "Content of Tab Pane 2",
+    },
+    {
+      key: StatusEnum.completed,
+      label: `сделано (${counters.completed})`,
+      children: "Content of Tab Pane 3",
+    },
+  ];
+
+  return <Tabs defaultActiveKey="1" items={items} onChange={onChange} />;
 }
 
 export default TodosTabs;

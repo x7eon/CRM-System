@@ -1,8 +1,11 @@
-import "./AddTodo.scss";
-import { type SyntheticEvent, useEffect, useState } from "react";
-import ErrorValidateText from "../ErrorValidateText/ErrorValidateText.tsx";
-import getValidateErrorText from "../../helpers/getValidateErrorText.ts";
 import { addTodoApi } from "../../api/api.ts";
+import type { FormProps } from "antd";
+import { Button, Form, Input, Flex } from "antd";
+import type { RuleObject } from "antd/lib/form";
+
+type FieldType = {
+  title?: string;
+};
 
 interface AddTodoProps {
   updateTodos: () => Promise<void>;
@@ -10,21 +13,19 @@ interface AddTodoProps {
 
 function AddTodo(props: AddTodoProps) {
   const { updateTodos } = props;
+  const [form] = Form.useForm();
 
-  const [isValidTodoTitle, setIsValidTodoTitle] = useState<boolean>(false);
-  const [validateErrorText, setValidateErrorText] = useState<string>("");
-  const [inputText, setInputText] = useState<string>("");
-
-  async function handleSubmit(e: SyntheticEvent): Promise<void> {
-    e.preventDefault();
-    const validateResult = getValidateErrorText(inputText);
-    setValidateErrorText(validateResult);
-    setIsValidTodoTitle(!validateResult);
-  }
-
-  function handleInputTextChange(e: SyntheticEvent<HTMLInputElement>): void {
-    setInputText(e.currentTarget.value);
-  }
+  const onFinish: FormProps<FieldType>["onFinish"] = async (values) => {
+    try {
+      if (values.title) {
+        await addTodo(values.title);
+        await updateTodos();
+      }
+    } catch (e) {
+      console.log(e);
+    }
+    form.setFieldsValue({ title: "" });
+  };
 
   async function addTodo(title: string): Promise<void> {
     try {
@@ -34,41 +35,44 @@ function AddTodo(props: AddTodoProps) {
     }
   }
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        if (isValidTodoTitle) {
-          await addTodo(inputText);
-          await updateTodos();
-          setInputText("");
-          setIsValidTodoTitle(false);
-        }
-      } catch (e) {
-        console.log(e);
+  async function validator(_: RuleObject, title: string): Promise<void> {
+    const trimmedTitle = title && title.trim();
+    const maxTitleLength = 64;
+    const minTitleLength = 2;
+    return new Promise((resolve, reject) => {
+      if (title === undefined || trimmedTitle === "") {
+        reject("Поле не заполнено или содержит только пробелы");
+      } else if (trimmedTitle.length < minTitleLength) {
+        reject("Минимальная длина текста 2 символа");
+      } else if (trimmedTitle.length > maxTitleLength) {
+        reject("Максимальная длина текста 64 символа");
+      } else {
+        resolve();
       }
-    }
-    fetchData();
-  }, [isValidTodoTitle]);
+    });
+  }
 
   return (
-    <>
-      <form className="addTodoForm" onSubmit={handleSubmit} noValidate={true}>
-        <input
-          className="addTodoInput"
-          type="text"
-          placeholder="Task To Be Done..."
-          value={inputText}
-          onChange={handleInputTextChange}
-        />
-        <button type="submit" className="AddButton">
-          Add
-        </button>
-      </form>
-      <ErrorValidateText
-        validateErrorText={validateErrorText}
-        isValid={isValidTodoTitle}
-      ></ErrorValidateText>
-    </>
+    <Form form={form} onFinish={onFinish}>
+      <Flex gap={30}>
+        <Form.Item
+          name="title"
+          rules={[
+            {
+              validator,
+            },
+          ]}
+        >
+          <Input placeholder="Task To Be Done..." style={{ minWidth: 300 }} />
+        </Form.Item>
+
+        <Form.Item>
+          <Button type="primary" htmlType="submit">
+            Add
+          </Button>
+        </Form.Item>
+      </Flex>
+    </Form>
   );
 }
 

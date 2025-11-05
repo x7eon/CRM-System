@@ -31,17 +31,14 @@ function TodosTabs(props: ListProps): ReactElement {
     {
       key: StatusEnum.all,
       label: `Все (${counters.all})`,
-      // children: "Content of Tab Pane 1", // TODO убрать чилдрены тут везде
     },
     {
       key: StatusEnum.inWork,
       label: `в работе (${counters.inWork})`,
-      // children: "Content of Tab Pane 2",
     },
     {
       key: StatusEnum.completed,
       label: `сделано (${counters.completed})`,
-      // children: "Content of Tab Pane 3",
     },
   ];
 

@@ -1,7 +1,7 @@
-import { type ReactElement, type SyntheticEvent, useState } from "react";
+import { type ReactElement, useState } from "react";
 import type { Todo } from "../../types/types.ts";
 import { deleteTodoApi, editTodoApi } from "../../api/api.ts";
-import { Card, Space, Input, Flex, Button, Form } from "antd";
+import { Card, Space, Input, Flex, Button, Form, Checkbox } from "antd";
 import validator from "../../helpers/validator.ts";
 import {
   EditOutlined,
@@ -25,23 +25,20 @@ function TodoItem(props: ITodoItemProps): ReactElement {
 
   const id = todo.id;
   const todoTitle = todo.title;
+  const status = todo.isDone;
 
+  const [form] = Form.useForm();
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
-  const [inputText, setInputText] = useState<string>(todo.title);
-  const [checkBoxIsDone, setCheckBoxIsDone] = useState<boolean>(todo.isDone);
-
-  function handleInputTextChange(e: SyntheticEvent<HTMLInputElement>): void {
-    setInputText(e.currentTarget.value);
-  }
 
   function editButtonHandler(): void {
     setIsEditMode(true);
   }
 
   async function saveButtonHandler(): Promise<void> {
+    const currentInputTitle = form.getFieldValue("title");
     try {
       if (isEditMode) {
-        await editTodo(id, inputText);
+        await editTodo(id, currentInputTitle);
         await updateTodos();
         setIsEditMode(false);
       }
@@ -62,16 +59,15 @@ function TodoItem(props: ITodoItemProps): ReactElement {
   function cancelButtonHandler(): void {
     if (isEditMode) {
       setIsEditMode(false);
-      setInputText(todoTitle);
+      form.setFieldsValue({ title: todoTitle });
     }
   }
 
-  async function inputCheckboxHandler(
-    e: React.ChangeEvent<HTMLInputElement>,
-  ): Promise<void> {
+  async function inputCheckboxHandler(): Promise<void> {
+    const currentInputTitle = form.getFieldValue("title");
+    const currentCheckedValue = form.getFieldValue("status");
     try {
-      setCheckBoxIsDone(e.target.checked);
-      await editTodo(id, inputText, e.target.checked);
+      await editTodo(id, currentInputTitle, currentCheckedValue);
       await updateTodos();
     } catch (e) {
       console.log(e);
@@ -101,19 +97,16 @@ function TodoItem(props: ITodoItemProps): ReactElement {
   return (
     <Space direction="vertical">
       <Card style={{ width: 400 }}>
-        <Form<FieldType>
-          initialValues={{ status: todo.isDone, title: todoTitle }}
+        <Form
+          form={form}
+          initialValues={{ status: status, title: todoTitle }}
           onFinish={saveButtonHandler}
         >
           <Flex gap={20}>
-            <Form.Item name="status">
-              <Input
-                type="checkbox"
-                checked={checkBoxIsDone}
-                onChange={inputCheckboxHandler}
-              />
+            <Form.Item<FieldType> name="status" valuePropName="checked">
+              <Checkbox onChange={inputCheckboxHandler} />
             </Form.Item>
-            <Form.Item
+            <Form.Item<FieldType>
               name="title"
               rules={[
                 {
@@ -123,16 +116,19 @@ function TodoItem(props: ITodoItemProps): ReactElement {
             >
               <Input
                 type="text"
-                value={inputText}
                 disabled={!isEditMode}
-                onChange={handleInputTextChange}
                 style={{ width: 200 }}
               />
             </Form.Item>
             {!isEditMode ? (
               <>
-                <Button onClick={editButtonHandler} icon={<EditOutlined />} />
                 <Button
+                  htmlType="button"
+                  onClick={editButtonHandler}
+                  icon={<EditOutlined />}
+                />
+                <Button
+                  htmlType="button"
                   onClick={deleteButtonHandler}
                   icon={<DeleteOutlined />}
                 />
@@ -142,7 +138,11 @@ function TodoItem(props: ITodoItemProps): ReactElement {
                 <Form.Item>
                   <Button htmlType="submit" icon={<SaveOutlined />} />
                 </Form.Item>
-                <Button onClick={cancelButtonHandler} icon={<StopOutlined />} />
+                <Button
+                  htmlType="button"
+                  onClick={cancelButtonHandler}
+                  icon={<StopOutlined />}
+                />
               </>
             )}
           </Flex>

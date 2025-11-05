@@ -37,20 +37,23 @@ function TodoListPage(): ReactElement {
     }
   }
 
-  function autoUpdateTodos(): void {
-    setInterval(async () => {
+  useEffect(() => {
+    getTodosData(StatusEnum.all);
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(async () => {
       try {
         await updateTodos();
       } catch (e) {
         console.log(e);
       }
     }, 5000);
-  }
 
-  useEffect(() => {
-    getTodosData(StatusEnum.all);
-    autoUpdateTodos();
-  }, []);
+    return () => {
+      clearTimeout(interval);
+    };
+  }, [activeTab]);
 
   return (
     <>

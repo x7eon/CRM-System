@@ -1,7 +1,6 @@
 import TodoItem from "../TodoItem/TodoItem";
 import type { Todo } from "../../types/types.ts";
-import { type ReactElement } from "react";
-
+import { memo, type ReactElement } from "react";
 import { List } from "antd";
 
 interface ITodoList {
@@ -9,7 +8,7 @@ interface ITodoList {
   updateTodos: () => Promise<void>;
 }
 
-function TodoList(props: ITodoList): ReactElement {
+const TodoList = memo(function (props: ITodoList): ReactElement {
   const { todos, updateTodos } = props;
 
   return (
@@ -25,6 +24,6 @@ function TodoList(props: ITodoList): ReactElement {
       />
     </>
   );
-}
+});
 
 export default TodoList;

@@ -1,6 +1,7 @@
 import { addTodoApi } from "../../api/api.ts";
 import type { FormProps } from "antd";
 import { Button, Form, Input, Flex } from "antd";
+import { memo } from "react";
 
 import validator from "../../helpers/validator.ts";
 
@@ -12,11 +13,13 @@ interface AddTodoProps {
   updateTodos: () => Promise<void>;
 }
 
-function AddTodo(props: AddTodoProps) {
+const AddTodo = memo(function (props: AddTodoProps) {
   const { updateTodos } = props;
   const [form] = Form.useForm();
 
-  const onFinish: FormProps<FieldType>["onFinish"] = async (values) => {
+  const onFinish: FormProps<FieldType>["onFinish"] = async (
+    values,
+  ): Promise<void> => {
     try {
       if (values.title) {
         await addTodo(values.title);
@@ -58,6 +61,6 @@ function AddTodo(props: AddTodoProps) {
       </Flex>
     </Form>
   );
-}
+});
 
 export default AddTodo;

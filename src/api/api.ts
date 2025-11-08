@@ -7,13 +7,19 @@ import type {
 } from "../types/types.ts";
 import { StatusEnum } from "../types/types.ts";
 
-const BASE_URL = "https://easydev.club/api/v1";
+const axiosInstance = axios.create({
+  baseURL: "https://easydev.club/api/v1",
+});
 
 async function getTodosApi(
   status: StatusEnum,
 ): Promise<MetaResponse<Todo, TodoInfo>> {
   try {
-    const res = await axios.get(`${BASE_URL}/todos?filter=${status}`);
+    const res = await axiosInstance.get(`/todos`, {
+      params: {
+        filter: status,
+      },
+    });
     return res.data;
   } catch (e) {
     console.log("Произошла ошибка при получении todo: " + e);
@@ -23,7 +29,7 @@ async function getTodosApi(
 
 async function addTodoApi(title: TodoRequest): Promise<Todo> {
   try {
-    const res = await axios.post(`${BASE_URL}/todos`, title);
+    const res = await axiosInstance.post(`/todos`, title);
     return res.data;
   } catch (e) {
     console.log("Произошла ошибка при добавлении todo: " + e);
@@ -33,7 +39,7 @@ async function addTodoApi(title: TodoRequest): Promise<Todo> {
 
 async function deleteTodoApi(id: number): Promise<void> {
   try {
-    await axios.delete(`${BASE_URL}/todos/${id}`);
+    await axiosInstance.delete(`/todos/${id}`);
   } catch (e) {
     console.log("Произошла ошибка при удалении todo: " + e);
     throw e;
@@ -42,7 +48,7 @@ async function deleteTodoApi(id: number): Promise<void> {
 
 async function editTodoApi(id: number, request: TodoRequest): Promise<Todo> {
   try {
-    const response = await axios.put(`${BASE_URL}/todos/${id}`, request);
+    const response = await axiosInstance.put(`/todos/${id}`, request);
     return response.data;
   } catch (e) {
     console.log("Произошла ошибка при изменении todo: " + e);

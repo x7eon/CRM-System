@@ -4,7 +4,7 @@ import { StatusEnum } from "../../types/types.ts";
 import { Tabs, type TabsProps } from "antd";
 
 interface ListProps {
-  counters: TodoInfo;
+  counters: TodoInfo | undefined;
   setActiveTab: Dispatch<SetStateAction<StatusEnum>>;
   getTodosData: (status: StatusEnum) => Promise<void>;
 }
@@ -30,15 +30,15 @@ function TodosTabs(props: ListProps): ReactElement {
   const items: TabsProps["items"] = [
     {
       key: StatusEnum.all,
-      label: `Все (${counters.all})`,
+      label: `Все (${counters?.all})`,
     },
     {
       key: StatusEnum.inWork,
-      label: `в работе (${counters.inWork})`,
+      label: `в работе (${counters?.inWork})`,
     },
     {
       key: StatusEnum.completed,
-      label: `сделано (${counters.completed})`,
+      label: `сделано (${counters?.completed})`,
     },
   ];
 

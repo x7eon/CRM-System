@@ -1,7 +1,16 @@
 import { type ReactElement, useState } from "react";
 import type { Todo } from "../../types/types.ts";
 import { deleteTodoApi, editTodoApi } from "../../api/api.ts";
-import { Card, Space, Input, Flex, Button, Form, Checkbox } from "antd";
+import {
+  Card,
+  Space,
+  Input,
+  Flex,
+  Button,
+  Form,
+  Checkbox,
+  type FormProps,
+} from "antd";
 import validator from "../../helpers/validator.ts";
 import {
   EditOutlined,
@@ -20,7 +29,7 @@ type FieldType = {
   title?: string;
 };
 
-function TodoItem(props: ITodoItemProps): ReactElement {
+const TodoItem = function (props: ITodoItemProps): ReactElement {
   const { todo, updateTodos } = props;
 
   const id = todo.id;
@@ -34,18 +43,19 @@ function TodoItem(props: ITodoItemProps): ReactElement {
     setIsEditMode(true);
   }
 
-  async function saveButtonHandler(): Promise<void> {
-    const currentInputTitle = form.getFieldValue("title");
-    try {
-      if (isEditMode) {
-        await editTodo(id, currentInputTitle);
-        await updateTodos();
-        setIsEditMode(false);
+  const onFinish: FormProps<FieldType>["onFinish"] =
+    async (): Promise<void> => {
+      const currentInputTitle = form.getFieldValue("title");
+      try {
+        if (isEditMode) {
+          await editTodo(id, currentInputTitle);
+          await updateTodos();
+          setIsEditMode(false);
+        }
+      } catch (e) {
+        console.log(e);
       }
-    } catch (e) {
-      console.log(e);
-    }
-  }
+    };
 
   async function deleteButtonHandler(): Promise<void> {
     try {
@@ -100,7 +110,7 @@ function TodoItem(props: ITodoItemProps): ReactElement {
         <Form
           form={form}
           initialValues={{ status: status, title: todoTitle }}
-          onFinish={saveButtonHandler}
+          onFinish={onFinish}
         >
           <Flex gap={20}>
             <Form.Item<FieldType> name="status" valuePropName="checked">
@@ -150,6 +160,6 @@ function TodoItem(props: ITodoItemProps): ReactElement {
       </Card>
     </Space>
   );
-}
+};
 
 export default TodoItem;

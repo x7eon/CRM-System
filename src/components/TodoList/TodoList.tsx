@@ -1,6 +1,6 @@
 import TodoItem from "../TodoItem/TodoItem";
 import type { Todo } from "../../types/types.ts";
-import { memo, type ReactElement } from "react";
+import { type ReactElement } from "react";
 import { List } from "antd";
 
 interface ITodoList {
@@ -8,8 +8,10 @@ interface ITodoList {
   updateTodos: () => Promise<void>;
 }
 
-const TodoList = memo(function (props: ITodoList): ReactElement {
+const TodoList = function (props: ITodoList): ReactElement {
   const { todos, updateTodos } = props;
+
+  console.log("TodoList rendered", new Date().toLocaleTimeString());
 
   return (
     <>
@@ -24,6 +26,6 @@ const TodoList = memo(function (props: ITodoList): ReactElement {
       />
     </>
   );
-});
+};
 
 export default TodoList;

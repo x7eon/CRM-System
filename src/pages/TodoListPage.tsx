@@ -1,4 +1,4 @@
-import { type ReactElement, useCallback, useEffect } from "react";
+import { type ReactElement, useEffect } from "react";
 import AddTodo from "../components/AddTodo/AddTodo.tsx";
 import TodosTabs from "../components/TodosTabs/TodosTabs.tsx";
 import TodoList from "../components/TodoList/TodoList.tsx";
@@ -16,42 +16,39 @@ function TodoListPage(): ReactElement {
   });
   const [activeTab, setActiveTab] = useState<StatusEnum>(StatusEnum.all);
 
-  const getTodosData = useCallback(
-    async (status: StatusEnum): Promise<void> => {
-      try {
-        const response = await getTodosApi(status);
-        setTodos((prevState) =>
-          prevState.length === response.data.length &&
-          prevState.every(
-            (value, index) =>
-              JSON.stringify(value) === JSON.stringify(response.data[index]),
-          )
+  const getTodosData = async (status: StatusEnum): Promise<void> => {
+    try {
+      const response = await getTodosApi(status);
+      setTodos((prevState) =>
+        prevState.length === response.data.length &&
+        prevState.every(
+          (value, index) =>
+            JSON.stringify(value) === JSON.stringify(response.data[index]),
+        )
+          ? prevState
+          : response.data,
+      );
+
+      setCounters((prevState) => {
+        if (response.info) {
+          return JSON.stringify(prevState) === JSON.stringify(response.info)
             ? prevState
-            : response.data,
-        );
+            : response.info;
+        }
+        return prevState;
+      });
+    } catch {
+      alert(`Ошибка получения данных. Попробуйте обновить страницу`);
+    }
+  };
 
-        setCounters((prevState) => {
-          if (response.info) {
-            return JSON.stringify(prevState) === JSON.stringify(response.info)
-              ? prevState
-              : response.info;
-          }
-          return prevState;
-        });
-      } catch {
-        alert(`Ошибка получения данных. Попробуйте обновить страницу`);
-      }
-    },
-    [],
-  );
-
-  const updateTodos = useCallback(async (): Promise<void> => {
+  const updateTodos = async (): Promise<void> => {
     try {
       await getTodosData(activeTab);
     } catch (e) {
       console.log(e);
     }
-  }, [getTodosData, activeTab]);
+  };
 
   useEffect(() => {
     getTodosData(StatusEnum.all);

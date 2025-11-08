@@ -12,6 +12,8 @@ interface ListProps {
 function TodosTabs(props: ListProps): ReactElement {
   const { counters, getTodosData, setActiveTab } = props;
 
+  console.log("TodoTabs rendered", new Date().toLocaleTimeString());
+
   const onChange = async (key: string): Promise<void> => {
     if (
       key === StatusEnum.all ||

@@ -32,6 +32,8 @@ type FieldType = {
 const TodoItem = function (props: ITodoItemProps): ReactElement {
   const { todo, updateTodos } = props;
 
+  console.log("TodoItem rendered", new Date().toLocaleTimeString());
+
   const id = todo.id;
   const todoTitle = todo.title;
   const status = todo.isDone;

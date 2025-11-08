@@ -1,8 +1,6 @@
 import { addTodoApi } from "../../api/api.ts";
 import type { FormProps } from "antd";
 import { Button, Form, Input, Flex } from "antd";
-import { memo } from "react";
-
 import validator from "../../helpers/validator.ts";
 
 type FieldType = {
@@ -13,9 +11,11 @@ interface AddTodoProps {
   updateTodos: () => Promise<void>;
 }
 
-const AddTodo = memo(function (props: AddTodoProps) {
+const AddTodo = function (props: AddTodoProps) {
   const { updateTodos } = props;
   const [form] = Form.useForm();
+
+  console.log("AddTodo rendered", new Date().toLocaleTimeString());
 
   const onFinish: FormProps<FieldType>["onFinish"] = async (
     values,
@@ -61,6 +61,6 @@ const AddTodo = memo(function (props: AddTodoProps) {
       </Flex>
     </Form>
   );
-});
+};
 
 export default AddTodo;

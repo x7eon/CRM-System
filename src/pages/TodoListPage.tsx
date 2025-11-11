@@ -37,8 +37,8 @@ function TodoListPage(): ReactElement {
         }
         return prevState;
       });
-    } catch {
-      alert(`Ошибка получения данных. Попробуйте обновить страницу`);
+    } catch (e) {
+      throw e;
     }
   };
 
@@ -46,7 +46,7 @@ function TodoListPage(): ReactElement {
     try {
       await getTodosData(activeTab);
     } catch (e) {
-      console.log(e);
+      throw e;
     }
   };
 
@@ -59,7 +59,7 @@ function TodoListPage(): ReactElement {
       try {
         await updateTodos();
       } catch (e) {
-        console.log(e);
+        throw e;
       }
     }, 5000);
 

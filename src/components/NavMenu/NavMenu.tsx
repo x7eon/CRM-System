@@ -8,11 +8,16 @@ type MenuItem = Required<MenuProps>["items"][number];
 function NavMenu(): ReactElement {
   const navigate = useNavigate();
 
-  const onClick: MenuProps["onClick"] = (e) => {
-    if (e.key === "1") {
-      navigate("/");
-    } else if (e.key === "2") {
-      navigate("/profile");
+  const handleNavigateMenu: MenuProps["onClick"] = (e) => {
+    const routes: Record<string, string> = {
+      1: "/",
+      2: "/profile",
+    };
+
+    const route = routes[e.key];
+
+    if (route) {
+      navigate(route);
     }
   };
 
@@ -38,7 +43,7 @@ function NavMenu(): ReactElement {
         },
       }}
     >
-      <Menu items={items} onClick={onClick} />
+      <Menu items={items} onClick={handleNavigateMenu} />
     </ConfigProvider>
   );
 }

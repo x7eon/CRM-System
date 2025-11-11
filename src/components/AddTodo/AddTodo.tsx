@@ -1,7 +1,6 @@
 import { addTodoApi } from "../../api/api.ts";
 import type { FormProps } from "antd";
-import { Button, Form, Input, Flex } from "antd";
-import validator from "../../helpers/validator.ts";
+import { Button, Form, Input, Flex, notification } from "antd";
 
 type FieldType = {
   title?: string;
@@ -15,51 +14,66 @@ const AddTodo = function (props: AddTodoProps) {
   const { updateTodos } = props;
   const [form] = Form.useForm();
 
-  console.log("AddTodo rendered", new Date().toLocaleTimeString());
+  const [api, contextHolder] = notification.useNotification();
 
-  const onFinish: FormProps<FieldType>["onFinish"] = async (
+  const openNotificationError = () => {
+    api.open({
+      type: "error",
+      message: "Произошла ошибка",
+      placement: "top",
+      description: "Не удалось добавить задачу. Попробуйте снова",
+    });
+  };
+
+  const onSubmitForm: FormProps<FieldType>["onFinish"] = async (
     values,
   ): Promise<void> => {
     try {
       if (values.title) {
-        await addTodo(values.title);
+        await addTodo(values.title.trim());
         await updateTodos();
       }
-    } catch (e) {
-      console.log(e);
+    } catch {
+      openNotificationError();
     }
     form.setFieldsValue({ title: "" });
   };
 
   async function addTodo(title: string): Promise<void> {
-    try {
-      await addTodoApi({ title });
-    } catch {
-      alert("Ошибка добавления задачи. Попробуйте снова");
-    }
+    await addTodoApi({ title });
   }
 
   return (
-    <Form form={form} onFinish={onFinish}>
-      <Flex gap={30}>
-        <Form.Item
-          name="title"
-          rules={[
-            {
-              validator,
-            },
-          ]}
-        >
-          <Input placeholder="Task To Be Done..." style={{ minWidth: 300 }} />
-        </Form.Item>
+    <>
+      {contextHolder}
+      <Form form={form} onFinish={onSubmitForm} name="smth">
+        <Flex gap={30}>
+          <Form.Item
+            name="title"
+            rules={[
+              {
+                pattern: /^\s*[^\s]/,
+                message: "Название не должно состоять только из пробелов",
+              },
+              {
+                required: true,
+                message: "Поле не заполнено",
+              },
+              { min: 2, message: "Минимальная длина названия 2 символа" },
+              { max: 64, message: "Максимальная длина названия 64 символа" },
+            ]}
+          >
+            <Input placeholder="Task To Be Done..." style={{ minWidth: 300 }} />
+          </Form.Item>
 
-        <Form.Item>
-          <Button type="primary" htmlType="submit">
-            Add
-          </Button>
-        </Form.Item>
-      </Flex>
-    </Form>
+          <Form.Item>
+            <Button type="primary" htmlType="submit">
+              Add
+            </Button>
+          </Form.Item>
+        </Flex>
+      </Form>
+    </>
   );
 };
 

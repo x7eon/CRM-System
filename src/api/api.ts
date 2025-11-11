@@ -22,7 +22,6 @@ async function getTodosApi(
     });
     return res.data;
   } catch (e) {
-    console.log("Произошла ошибка при получении todo: " + e);
     throw e;
   }
 }
@@ -32,7 +31,6 @@ async function addTodoApi(title: TodoRequest): Promise<Todo> {
     const res = await axiosInstance.post(`/todos`, title);
     return res.data;
   } catch (e) {
-    console.log("Произошла ошибка при добавлении todo: " + e);
     throw e;
   }
 }
@@ -41,7 +39,6 @@ async function deleteTodoApi(id: number): Promise<void> {
   try {
     await axiosInstance.delete(`/todos/${id}`);
   } catch (e) {
-    console.log("Произошла ошибка при удалении todo: " + e);
     throw e;
   }
 }
@@ -51,7 +48,6 @@ async function editTodoApi(id: number, request: TodoRequest): Promise<Todo> {
     const response = await axiosInstance.put(`/todos/${id}`, request);
     return response.data;
   } catch (e) {
-    console.log("Произошла ошибка при изменении todo: " + e);
     throw e;
   }
 }

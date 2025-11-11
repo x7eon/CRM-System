@@ -11,8 +11,6 @@ interface ITodoList {
 const TodoList = function (props: ITodoList): ReactElement {
   const { todos, updateTodos } = props;
 
-  console.log("TodoList rendered", new Date().toLocaleTimeString());
-
   return (
     <>
       <List

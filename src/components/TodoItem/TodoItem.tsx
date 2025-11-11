@@ -9,9 +9,10 @@ import {
   Button,
   Form,
   Checkbox,
+  notification,
   type FormProps,
+  type CheckboxChangeEvent,
 } from "antd";
-import validator from "../../helpers/validator.ts";
 import {
   EditOutlined,
   DeleteOutlined,
@@ -25,73 +26,80 @@ export interface ITodoItemProps {
 }
 
 type FieldType = {
-  status?: boolean;
+  todoIsDone?: boolean;
   title?: string;
 };
 
 const TodoItem = function (props: ITodoItemProps): ReactElement {
-  const { todo, updateTodos } = props;
-
-  console.log("TodoItem rendered", new Date().toLocaleTimeString());
-
-  const id = todo.id;
-  const todoTitle = todo.title;
-  const status = todo.isDone;
+  const {
+    todo: { id, title, isDone },
+    updateTodos,
+  } = props;
 
   const [form] = Form.useForm();
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
+  const [api, contextHolder] = notification.useNotification();
 
-  function editButtonHandler(): void {
+  const errorsText: Record<string, string> = {
+    editTitleError: "Не удалось изменить текст задачи. Попробуйте снова",
+    deleteTodoError: "Не удалось удалить задачу. Попробуйте снова",
+    changeTodoIsDone: "Не удалось изменить статус задачи. Попробуйте снова",
+  };
+
+  const openNotificationError = (descriptionText: string) => {
+    api.open({
+      type: "error",
+      message: "Произошла ошибка",
+      placement: "top",
+      description: descriptionText,
+    });
+  };
+
+  function onEditMode(): void {
     setIsEditMode(true);
   }
 
-  const onFinish: FormProps<FieldType>["onFinish"] =
-    async (): Promise<void> => {
-      const currentInputTitle = form.getFieldValue("title");
-      try {
-        if (isEditMode) {
-          await editTodo(id, currentInputTitle);
-          await updateTodos();
-          setIsEditMode(false);
-        }
-      } catch (e) {
-        console.log(e);
+  const onFinish: FormProps<FieldType>["onFinish"] = async (
+    values,
+  ): Promise<void> => {
+    try {
+      if (isEditMode) {
+        await editTodo(id, values.title);
+        await updateTodos();
+        setIsEditMode(false);
       }
-    };
+    } catch {
+      openNotificationError(errorsText.editTitleError);
+    }
+  };
 
-  async function deleteButtonHandler(): Promise<void> {
+  async function onDeleteTodo(): Promise<void> {
     try {
       await deleteTodo(id);
       await updateTodos();
-    } catch (e) {
-      console.log(e);
+    } catch {
+      openNotificationError(errorsText.deleteTodoError);
     }
   }
 
-  function cancelButtonHandler(): void {
+  function onCancelEditMode(): void {
     if (isEditMode) {
       setIsEditMode(false);
-      form.setFieldsValue({ title: todoTitle });
+      form.setFieldsValue({ title: title });
     }
   }
 
-  async function inputCheckboxHandler(): Promise<void> {
-    const currentInputTitle = form.getFieldValue("title");
-    const currentCheckedValue = form.getFieldValue("status");
+  async function onChangeIsDoneTodo(e: CheckboxChangeEvent): Promise<void> {
     try {
-      await editTodo(id, currentInputTitle, currentCheckedValue);
+      await editTodo(id, undefined, e.target.checked);
       await updateTodos();
-    } catch (e) {
-      console.log(e);
+    } catch {
+      openNotificationError(errorsText.changeTodoIsDone);
     }
   }
 
   async function deleteTodo(id: number): Promise<void> {
-    try {
-      await deleteTodoApi(id);
-    } catch {
-      alert("Ошибка удаления задачи. Попробуйте снова");
-    }
+    await deleteTodoApi(id);
   }
 
   async function editTodo(
@@ -99,68 +107,93 @@ const TodoItem = function (props: ITodoItemProps): ReactElement {
     title?: string,
     isDone?: boolean,
   ): Promise<void> {
-    try {
-      await editTodoApi(id, { title, isDone });
-    } catch {
-      alert("Ошибка изменения задачи. Попробуйте снова");
-    }
+    await editTodoApi(id, { title, isDone });
+  }
+
+  function onSubmitForm() {
+    form.submit();
   }
 
   return (
-    <Space direction="vertical">
-      <Card style={{ width: 400 }}>
-        <Form
-          form={form}
-          initialValues={{ status: status, title: todoTitle }}
-          onFinish={onFinish}
-        >
-          <Flex gap={20}>
-            <Form.Item<FieldType> name="status" valuePropName="checked">
-              <Checkbox onChange={inputCheckboxHandler} />
-            </Form.Item>
-            <Form.Item<FieldType>
-              name="title"
-              rules={[
-                {
-                  validator,
-                },
-              ]}
+    <>
+      {contextHolder}
+      <Form.Provider
+        onFormFinish={(name, { values }) => {
+          if (name === `titleForm${id}`) {
+            onFinish(values);
+          }
+        }}
+      >
+        <Space direction="vertical">
+          <Card style={{ width: 400 }}>
+            <Form
+              form={form}
+              name={`titleForm${id}`}
+              initialValues={{ todoIsDone: isDone, title: title }}
             >
-              <Input
-                type="text"
-                disabled={!isEditMode}
-                style={{ width: 200 }}
-              />
-            </Form.Item>
-            {!isEditMode ? (
-              <>
-                <Button
-                  htmlType="button"
-                  onClick={editButtonHandler}
-                  icon={<EditOutlined />}
-                />
-                <Button
-                  htmlType="button"
-                  onClick={deleteButtonHandler}
-                  icon={<DeleteOutlined />}
-                />
-              </>
-            ) : (
-              <>
-                <Form.Item>
-                  <Button htmlType="submit" icon={<SaveOutlined />} />
+              <Flex gap={20}>
+                <Form.Item<FieldType> name="todoIsDone" valuePropName="checked">
+                  <Checkbox onChange={onChangeIsDoneTodo} />
                 </Form.Item>
-                <Button
-                  htmlType="button"
-                  onClick={cancelButtonHandler}
-                  icon={<StopOutlined />}
-                />
-              </>
-            )}
-          </Flex>
-        </Form>
-      </Card>
-    </Space>
+                <Form.Item<FieldType>
+                  name="title"
+                  rules={[
+                    {
+                      pattern: /^\s*[^\s]/,
+                      message: "Название не должно состоять только из пробелов",
+                    },
+                    {
+                      required: true,
+                      message: "Поле не заполнено",
+                    },
+                    { min: 2, message: "Минимальная длина названия 2 символа" },
+                    {
+                      max: 64,
+                      message: "Максимальная длина названия 64 символа",
+                    },
+                  ]}
+                >
+                  <Input
+                    type="text"
+                    disabled={!isEditMode}
+                    style={{ width: 200 }}
+                  />
+                </Form.Item>
+                {!isEditMode ? (
+                  <>
+                    <Button
+                      htmlType="button"
+                      onClick={onEditMode}
+                      icon={<EditOutlined />}
+                    />
+                    <Button
+                      htmlType="button"
+                      onClick={onDeleteTodo}
+                      icon={<DeleteOutlined />}
+                    />
+                  </>
+                ) : (
+                  <>
+                    <Form.Item>
+                      <Button
+                        htmlType="button"
+                        onClick={onSubmitForm}
+                        icon={<SaveOutlined />}
+                      />
+                    </Form.Item>
+                    <Button
+                      htmlType="button"
+                      onClick={onCancelEditMode}
+                      icon={<StopOutlined />}
+                    />
+                  </>
+                )}
+              </Flex>
+            </Form>
+          </Card>
+        </Space>
+      </Form.Provider>
+    </>
   );
 };
 

@@ -1,95 +1,105 @@
-import "./TodoItem.scss";
-import {
-  type ReactElement,
-  type SyntheticEvent,
-  useEffect,
-  useState,
-} from "react";
-import ErrorValidateText from "../ErrorValidateText/ErrorValidateText.tsx";
+import { type ReactElement, useState } from "react";
 import type { Todo } from "../../types/types.ts";
-import getValidateErrorText from "../../helpers/getValidateErrorText.ts";
 import { deleteTodoApi, editTodoApi } from "../../api/api.ts";
+import {
+  Card,
+  Space,
+  Input,
+  Flex,
+  Button,
+  Form,
+  Checkbox,
+  notification,
+  type FormProps,
+  type CheckboxChangeEvent,
+} from "antd";
+import {
+  EditOutlined,
+  DeleteOutlined,
+  StopOutlined,
+  SaveOutlined,
+} from "@ant-design/icons";
 
 export interface ITodoItemProps {
   todo: Todo;
   updateTodos: () => Promise<void>;
 }
 
-function TodoItem(props: ITodoItemProps): ReactElement {
-  const { todo, updateTodos } = props;
+type FieldType = {
+  todoIsDone?: boolean;
+  title?: string;
+};
 
-  const id = todo.id;
-  const todoTitle = todo.title;
+const TodoItem = function (props: ITodoItemProps): ReactElement {
+  const {
+    todo: { id, title, isDone },
+    updateTodos,
+  } = props;
 
-  const [inputText, setInputText] = useState<string>(todo.title);
-  const [checkBoxIsDone, setCheckBoxIsDone] = useState<boolean>(todo.isDone);
+  const [form] = Form.useForm();
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
-  const [validateErrorText, setValidateErrorText] = useState<string>("");
-  const [isValidTodoTitle, setIsValidTodoTitle] = useState<boolean>(false);
-  const [isDisabledSaveButton, setIsDisabledSaveButton] =
-    useState<boolean>(false);
+  const [api, contextHolder] = notification.useNotification();
 
-  function handleInputTextChange(e: SyntheticEvent<HTMLInputElement>): void {
-    setInputText(e.currentTarget.value);
-    if (e.currentTarget.value === todoTitle) {
-      setIsDisabledSaveButton(true);
-    } else {
-      setIsDisabledSaveButton(false);
-    }
-  }
+  const errorsText: Record<string, string> = {
+    editTitleError: "Не удалось изменить текст задачи. Попробуйте снова",
+    deleteTodoError: "Не удалось удалить задачу. Попробуйте снова",
+    changeTodoIsDone: "Не удалось изменить статус задачи. Попробуйте снова",
+  };
 
-  function editButtonHandler(): void {
+  const openNotificationError = (descriptionText: string) => {
+    api.open({
+      type: "error",
+      message: "Произошла ошибка",
+      placement: "top",
+      description: descriptionText,
+    });
+  };
+
+  function onEditMode(): void {
     setIsEditMode(true);
-    setIsDisabledSaveButton(true);
   }
 
-  async function saveButtonHandler(): Promise<void> {
+  const onFinish: FormProps<FieldType>["onFinish"] = async (
+    values,
+  ): Promise<void> => {
     try {
       if (isEditMode) {
-        const validateResult = getValidateErrorText(inputText);
-        setValidateErrorText(validateResult);
-        setIsValidTodoTitle(!validateResult);
+        await editTodo(id, values.title);
+        await updateTodos();
+        setIsEditMode(false);
       }
-    } catch (e) {
-      console.log(e);
+    } catch {
+      openNotificationError(errorsText.editTitleError);
     }
-  }
+  };
 
-  async function deleteButtonHandler(): Promise<void> {
+  async function onDeleteTodo(): Promise<void> {
     try {
       await deleteTodo(id);
       await updateTodos();
-    } catch (e) {
-      console.log(e);
+    } catch {
+      openNotificationError(errorsText.deleteTodoError);
     }
   }
 
-  function cancelButtonHandler(): void {
+  function onCancelEditMode(): void {
     if (isEditMode) {
       setIsEditMode(false);
-      setInputText(todoTitle);
-      setValidateErrorText("");
+      form.setFieldsValue({ title: title });
     }
   }
 
-  async function inputCheckboxHandler(
-    e: React.ChangeEvent<HTMLInputElement>,
-  ): Promise<void> {
+  async function onChangeIsDoneTodo(e: CheckboxChangeEvent): Promise<void> {
     try {
-      setCheckBoxIsDone(e.target.checked);
-      await editTodo(id, inputText, e.target.checked);
+      await editTodo(id, undefined, e.target.checked);
       await updateTodos();
-    } catch (e) {
-      console.log(e);
+    } catch {
+      openNotificationError(errorsText.changeTodoIsDone);
     }
   }
 
   async function deleteTodo(id: number): Promise<void> {
-    try {
-      await deleteTodoApi(id);
-    } catch {
-      alert("Ошибка удаления задачи. Попробуйте снова");
-    }
+    await deleteTodoApi(id);
   }
 
   async function editTodo(
@@ -97,79 +107,94 @@ function TodoItem(props: ITodoItemProps): ReactElement {
     title?: string,
     isDone?: boolean,
   ): Promise<void> {
-    try {
-      await editTodoApi(id, { title, isDone });
-    } catch {
-      alert("Ошибка изменения задачи. Попробуйте снова");
-    }
+    await editTodoApi(id, { title, isDone });
   }
 
-  useEffect(() => {
-    (async () => {
-      try {
-        if (isValidTodoTitle) {
-          await editTodo(id, inputText);
-          await updateTodos();
-          setIsEditMode(false);
-          setIsValidTodoTitle(false);
-        }
-      } catch (e) {
-        console.log(e);
-      }
-    })();
-  }, [isValidTodoTitle]);
+  function onSubmitForm() {
+    form.submit();
+  }
 
   return (
-    <div className="todoItemContainer">
-      <div className="todoItemTextCheckGroup">
-        <input
-          className="todoItemCheckbox"
-          type="checkbox"
-          id="checkbox"
-          checked={checkBoxIsDone}
-          onChange={inputCheckboxHandler}
-        />
-        <input
-          type="text"
-          className="todoItemInputTitle"
-          value={inputText}
-          disabled={!isEditMode}
-          onChange={handleInputTextChange}
-        />
-      </div>
-      <div className="todoItemButtons">
-        {!isEditMode ? (
-          <>
-            <button
-              className="todoButton todoItemEditButton"
-              onClick={editButtonHandler}
-            />
-            <button
-              className="todoButton todoItemDeleteButton"
-              onClick={deleteButtonHandler}
-            />
-          </>
-        ) : (
-          <>
-            <button
-              className="todoButton todoItemSaveButton"
-              onClick={saveButtonHandler}
-              disabled={isDisabledSaveButton}
-            />
-            <button
-              className="todoButton todoItemCancelButton"
-              onClick={cancelButtonHandler}
-            />
-          </>
-        )}
-      </div>
-      <ErrorValidateText
-        validateErrorText={validateErrorText}
-        styles={{ marginLeft: 32 }}
-        isValid={isValidTodoTitle}
-      ></ErrorValidateText>
-    </div>
+    <>
+      {contextHolder}
+      <Form.Provider
+        onFormFinish={(name, { values }) => {
+          if (name === `titleForm${id}`) {
+            onFinish(values);
+          }
+        }}
+      >
+        <Space direction="vertical">
+          <Card style={{ width: 400 }}>
+            <Form
+              form={form}
+              name={`titleForm${id}`}
+              initialValues={{ todoIsDone: isDone, title: title }}
+            >
+              <Flex gap={20}>
+                <Form.Item<FieldType> name="todoIsDone" valuePropName="checked">
+                  <Checkbox onChange={onChangeIsDoneTodo} />
+                </Form.Item>
+                <Form.Item<FieldType>
+                  name="title"
+                  rules={[
+                    {
+                      pattern: /^\s*[^\s]/,
+                      message: "Название не должно состоять только из пробелов",
+                    },
+                    {
+                      required: true,
+                      message: "Поле не заполнено",
+                    },
+                    { min: 2, message: "Минимальная длина названия 2 символа" },
+                    {
+                      max: 64,
+                      message: "Максимальная длина названия 64 символа",
+                    },
+                  ]}
+                >
+                  <Input
+                    type="text"
+                    disabled={!isEditMode}
+                    style={{ width: 200 }}
+                  />
+                </Form.Item>
+                {!isEditMode ? (
+                  <>
+                    <Button
+                      htmlType="button"
+                      onClick={onEditMode}
+                      icon={<EditOutlined />}
+                    />
+                    <Button
+                      htmlType="button"
+                      onClick={onDeleteTodo}
+                      icon={<DeleteOutlined />}
+                    />
+                  </>
+                ) : (
+                  <>
+                    <Form.Item>
+                      <Button
+                        htmlType="button"
+                        onClick={onSubmitForm}
+                        icon={<SaveOutlined />}
+                      />
+                    </Form.Item>
+                    <Button
+                      htmlType="button"
+                      onClick={onCancelEditMode}
+                      icon={<StopOutlined />}
+                    />
+                  </>
+                )}
+              </Flex>
+            </Form>
+          </Card>
+        </Space>
+      </Form.Provider>
+    </>
   );
-}
+};
 
 export default TodoItem;

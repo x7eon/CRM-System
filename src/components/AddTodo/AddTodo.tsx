@@ -1,75 +1,80 @@
-import "./AddTodo.scss";
-import { type SyntheticEvent, useEffect, useState } from "react";
-import ErrorValidateText from "../ErrorValidateText/ErrorValidateText.tsx";
-import getValidateErrorText from "../../helpers/getValidateErrorText.ts";
 import { addTodoApi } from "../../api/api.ts";
+import type { FormProps } from "antd";
+import { Button, Form, Input, Flex, notification } from "antd";
+
+type FieldType = {
+  title?: string;
+};
 
 interface AddTodoProps {
   updateTodos: () => Promise<void>;
 }
 
-function AddTodo(props: AddTodoProps) {
+const AddTodo = function (props: AddTodoProps) {
   const { updateTodos } = props;
+  const [form] = Form.useForm();
 
-  const [isValidTodoTitle, setIsValidTodoTitle] = useState<boolean>(false);
-  const [validateErrorText, setValidateErrorText] = useState<string>("");
-  const [inputText, setInputText] = useState<string>("");
+  const [api, contextHolder] = notification.useNotification();
 
-  async function handleSubmit(e: SyntheticEvent): Promise<void> {
-    e.preventDefault();
-    const validateResult = getValidateErrorText(inputText);
-    setValidateErrorText(validateResult);
-    setIsValidTodoTitle(!validateResult);
-  }
+  const openNotificationError = () => {
+    api.open({
+      type: "error",
+      message: "Произошла ошибка",
+      placement: "top",
+      description: "Не удалось добавить задачу. Попробуйте снова",
+    });
+  };
 
-  function handleInputTextChange(e: SyntheticEvent<HTMLInputElement>): void {
-    setInputText(e.currentTarget.value);
-  }
+  const onSubmitForm: FormProps<FieldType>["onFinish"] = async (
+    values,
+  ): Promise<void> => {
+    try {
+      if (values.title) {
+        await addTodo(values.title.trim());
+        await updateTodos();
+      }
+    } catch {
+      openNotificationError();
+    }
+    form.setFieldsValue({ title: "" });
+  };
 
   async function addTodo(title: string): Promise<void> {
-    try {
-      await addTodoApi({ title });
-    } catch {
-      alert("Ошибка добавления задачи. Попробуйте снова");
-    }
+    await addTodoApi({ title });
   }
-
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        if (isValidTodoTitle) {
-          await addTodo(inputText);
-          await updateTodos();
-          setInputText("");
-          setIsValidTodoTitle(false);
-        }
-      } catch (e) {
-        console.log(e);
-      }
-    }
-    fetchData();
-  }, [isValidTodoTitle]);
 
   return (
     <>
-      <form className="addTodoForm" onSubmit={handleSubmit} noValidate={true}>
-        <input
-          className="addTodoInput"
-          type="text"
-          placeholder="Task To Be Done..."
-          value={inputText}
-          onChange={handleInputTextChange}
-        />
-        <button type="submit" className="AddButton">
-          Add
-        </button>
-      </form>
-      <ErrorValidateText
-        validateErrorText={validateErrorText}
-        isValid={isValidTodoTitle}
-      ></ErrorValidateText>
+      {contextHolder}
+      <Form form={form} onFinish={onSubmitForm} name="smth">
+        <Flex gap={30}>
+          <Form.Item
+            name="title"
+            rules={[
+              {
+                pattern: /^\s*[^\s]/,
+                message: "Название не должно состоять только из пробелов",
+              },
+              {
+                required: true,
+                message: "Поле не заполнено",
+              },
+              { min: 2, message: "Минимальная длина названия 2 символа" },
+              { max: 64, message: "Максимальная длина названия 64 символа" },
+            ]}
+          >
+            <Input placeholder="Task To Be Done..." style={{ minWidth: 300 }} />
+          </Form.Item>
+
+          <Form.Item>
+            <Button type="primary" htmlType="submit">
+              Add
+            </Button>
+          </Form.Item>
+        </Flex>
+      </Form>
     </>
   );
-}
+};
 
 export default AddTodo;

@@ -1,9 +1,9 @@
-import type { ReactElement } from "react";
+import { type ReactElement, useEffect } from "react";
 import AddTodo from "../components/AddTodo/AddTodo.tsx";
 import TodosTabs from "../components/TodosTabs/TodosTabs.tsx";
 import TodoList from "../components/TodoList/TodoList.tsx";
 import { getTodosApi } from "../api/api.ts";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { Todo, TodoInfo } from "../types/types.ts";
 import { StatusEnum } from "../types/types.ts";
 
@@ -16,30 +16,57 @@ function TodoListPage(): ReactElement {
   });
   const [activeTab, setActiveTab] = useState<StatusEnum>(StatusEnum.all);
 
-  async function getTodosData(status: StatusEnum): Promise<void> {
+  const getTodosData = async (status: StatusEnum): Promise<void> => {
     try {
       const response = await getTodosApi(status);
-      setTodos(response.data);
+      setTodos((prevState) =>
+        prevState.length === response.data.length &&
+        prevState.every(
+          (value, index) =>
+            JSON.stringify(value) === JSON.stringify(response.data[index]),
+        )
+          ? prevState
+          : response.data,
+      );
 
-      if (response.info) {
-        setCounters(response.info);
-      }
-    } catch {
-      alert(`Ошибка получения данных. Попробуйте обновить страницу`);
+      setCounters((prevState) => {
+        if (response.info) {
+          return JSON.stringify(prevState) === JSON.stringify(response.info)
+            ? prevState
+            : response.info;
+        }
+        return prevState;
+      });
+    } catch (e) {
+      throw e;
     }
-  }
+  };
 
-  async function updateTodos(): Promise<void> {
+  const updateTodos = async (): Promise<void> => {
     try {
       await getTodosData(activeTab);
     } catch (e) {
-      console.log(e);
+      throw e;
     }
-  }
+  };
 
   useEffect(() => {
     getTodosData(StatusEnum.all);
   }, []);
+
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      try {
+        await updateTodos();
+      } catch (e) {
+        throw e;
+      }
+    }, 5000);
+
+    return () => {
+      clearTimeout(interval);
+    };
+  }, [activeTab]);
 
   return (
     <>
@@ -48,7 +75,6 @@ function TodoListPage(): ReactElement {
         counters={counters}
         getTodosData={getTodosData}
         setActiveTab={setActiveTab}
-        activeTab={activeTab}
       />
       <TodoList todos={todos} updateTodos={updateTodos} />
     </>
